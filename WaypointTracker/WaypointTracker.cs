@@ -16,7 +16,7 @@ namespace WaypointTracker
             Drawing.OnDraw += OnDraw;
         }
 
-        public void OnLoad()
+        private void OnLoad()
         {
             Game.PrintChat(
                 string.Format(
@@ -54,11 +54,11 @@ namespace WaypointTracker
                     if (index > 0)
                     {
                         float[] prev = Drawing.WorldToScreen(hero.Path[index - 1]);
-                        Drawing.DrawLine(prev[0], prev[1], curr[0], curr[1], 3, Color.Green);
+                        Drawing.DrawLine(prev[0], prev[1], curr[0], curr[1], 3, hero.IsAlly ? Color.Green : Color.Red);
                     }
                     else
                     {
-                        Drawing.DrawLine(heroPos[0], heroPos[1], curr[0], curr[1], 3, Color.Green);
+                        Drawing.DrawLine(heroPos[0], heroPos[1], curr[0], curr[1], 3, hero.IsAlly ? Color.Green : Color.Red);
                     }
                 }
                 Drawing.DrawText(lastPathPos[0], lastPathPos[1], Color.Orange, hero.BaseSkinName);
