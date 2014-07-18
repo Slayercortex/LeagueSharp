@@ -30,7 +30,7 @@ namespace PacketLogger
     {
         private const int WM_KEYDOWN = 0x100;
         private const int WM_KEYUP = 0x101;
-        private const int Activade = 0x09; // Tab
+        private const int Activate = 0x09; // Tab
         private const int SwitchActive = 0x20; // Space
         private const int ClearConsole = 0x60; // Numpad 0
         private const int SwitcPacketSend = 0x61; // Numpad 1
@@ -38,6 +38,7 @@ namespace PacketLogger
         private const int MouseOverInfo = 0x65; // Numpad 5
         private const int PlayerNetworkId = 0x67; // Numpad 7
         private const int PlayerPosition = 0x68; // Numpad 8
+        private const int ConsoleForeground = 0x6B; // Numpad +
 
         private const int MouseOverInfoRange = 250;
 
@@ -90,7 +91,8 @@ namespace PacketLogger
                 Drawing.DrawText(10, 50, Color.Yellow, "Packet Process:");
                 Drawing.DrawText(135, 10, _active ? Color.Green : Color.Red, _active ? "Enabled" : "Disabled");
                 Drawing.DrawText(135, 30, _packetSend ? Color.Green : Color.Red, _packetSend ? "Enabled" : "Disabled");
-                Drawing.DrawText(135, 50, _packetProcess ? Color.Green : Color.Red, _packetProcess ? "Enabled" : "Disabled");
+                Drawing.DrawText(135, 50, _packetProcess ? Color.Green : Color.Red,
+                    _packetProcess ? "Enabled" : "Disabled");
             }
             catch (Exception ex)
             {
@@ -125,7 +127,7 @@ namespace PacketLogger
                             LogChat((_packetProcess ? "Enabled" : "Disabled") + " packet process logging.");
                         }
                         break;
-                    case Activade:
+                    case Activate:
                         if (args.Msg == WM_KEYUP)
                         {
                             _active = !_active;
@@ -182,6 +184,16 @@ namespace PacketLogger
                                     "Name: {0}{6}NetworkId: {1}{6}NetworkId(byte): {2}{6}Position: x:{3} y:{4} z:{5}{6}{6}",
                                     obj.Name, obj.NetworkId, (byte) obj.NetworkId, obj.Position.X, obj.Position.Y,
                                     obj.Position.Z, Environment.NewLine);
+                            }
+                        }
+                        break;
+                    case ConsoleForeground:
+                        if (args.Msg == WM_KEYUP)
+                        {
+                            IntPtr handle = WindowServices.FindWindowByCaption(IntPtr.Zero, Console.Title);
+                            if (handle != IntPtr.Zero)
+                            {
+                                WindowServices.SetForegroundWindow(handle);
                             }
                         }
                         break;
