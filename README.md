@@ -66,9 +66,12 @@ PacketLogger helps you to debug incoming and outgoing packets from League of Leg
 #### Numpad 2
 
     Enable/disable the logging from all incoming packets.
+#### Numpad 3
+
+    Enable/disable the drawing from circles around objects which are in a radius from 300 to the cursor.
 #### Numpad 5
 
-    Log all objects which are in a radius from 250 to the Cursor.
+    Log all objects which are in a radius from 300 to the Cursor.
 #### Numpad 7
 
     Logs the current player networkid.

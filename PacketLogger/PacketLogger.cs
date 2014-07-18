@@ -35,15 +35,18 @@ namespace PacketLogger
         private const int ClearConsole = 0x60; // Numpad 0
         private const int SwitcPacketSend = 0x61; // Numpad 1
         private const int SwitcPacketProcess = 0x62; // Numpad 2
-        private const int MouseOverInfo = 0x65; // Numpad 5
+        private const int CursorOverDraw = 0x63; // Numpad 3
+        private const int CursorOverInfo = 0x65; // Numpad 5
         private const int PlayerNetworkId = 0x67; // Numpad 7
         private const int PlayerPosition = 0x68; // Numpad 8
         private const int ConsoleForeground = 0x6B; // Numpad +
 
-        private const int MouseOverInfoRange = 250;
+        private const int CursorOverInfoRange = 300;
+        private const int CursorDrawingRadius = 25;
 
         private readonly Action _onLoadAction;
         private bool _active;
+        private bool _cursorDrawCircles;
         private bool _packetProcess;
         private bool _packetSend;
         private bool _switchActive;
@@ -89,10 +92,23 @@ namespace PacketLogger
                 Drawing.DrawText(10, 10, Color.Yellow, "Packet Active:");
                 Drawing.DrawText(10, 30, Color.Yellow, "Packet Send:");
                 Drawing.DrawText(10, 50, Color.Yellow, "Packet Process:");
+                Drawing.DrawText(10, 70, Color.Yellow, "Drawing Circles:");
+
                 Drawing.DrawText(135, 10, _active ? Color.Green : Color.Red, _active ? "Enabled" : "Disabled");
                 Drawing.DrawText(135, 30, _packetSend ? Color.Green : Color.Red, _packetSend ? "Enabled" : "Disabled");
                 Drawing.DrawText(135, 50, _packetProcess ? Color.Green : Color.Red,
                     _packetProcess ? "Enabled" : "Disabled");
+                Drawing.DrawText(135, 70, _cursorDrawCircles ? Color.Green : Color.Red,
+                    _cursorDrawCircles ? "Enabled" : "Disabled");
+
+                if (_cursorDrawCircles)
+                {
+                    IEnumerable<Obj_AI_Base> list = GetMonstersNearCursor();
+                    foreach (Obj_AI_Base obj in list.Where(obj => obj.IsValid))
+                    {
+                        Drawing.DrawCircle(obj.Position, obj.BoundingRadius + CursorDrawingRadius, Color.Gray);
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -110,28 +126,31 @@ namespace PacketLogger
                         if (args.Msg == WM_KEYUP)
                         {
                             Console.Clear();
-                            LogChat("Console cleared.");
+                            Game.PrintChat(
+                                string.Format(
+                                    "<font color='#F7A100'>{0}: {1}</font>",
+                                    Assembly.GetExecutingAssembly().GetName().Name,
+                                    "Console cleared"
+                                    )
+                                );
                         }
                         break;
                     case SwitcPacketSend:
                         if (args.Msg == WM_KEYUP)
                         {
                             _packetSend = !_packetSend;
-                            LogChat((_packetSend ? "Enabled" : "Disabled") + " packet send logging.");
                         }
                         break;
                     case SwitcPacketProcess:
                         if (args.Msg == WM_KEYUP)
                         {
                             _packetProcess = !_packetProcess;
-                            LogChat((_packetProcess ? "Enabled" : "Disabled") + " packet process logging.");
                         }
                         break;
                     case Activate:
                         if (args.Msg == WM_KEYUP)
                         {
                             _active = !_active;
-                            LogChat((_active ? "Activaded." : "Disabled."));
                         }
                         break;
                     case SwitchActive:
@@ -141,14 +160,12 @@ namespace PacketLogger
                             {
                                 _switchActive = true;
                                 _active = !_active;
-                                LogChat((_active ? "Activaded." : "Disabled."));
                             }
                         }
                         if (args.Msg == WM_KEYUP)
                         {
                             _switchActive = false;
                             _active = !_active;
-                            LogChat((_active ? "Activaded." : "Disabled."));
                         }
                         break;
                     case PlayerNetworkId:
@@ -167,17 +184,16 @@ namespace PacketLogger
                                 ObjectManager.Player.Position.Z, Environment.NewLine);
                         }
                         break;
-                    case MouseOverInfo:
+                    case CursorOverDraw:
                         if (args.Msg == WM_KEYUP)
                         {
-                            List<Obj_AI_Base> list =
-                                ObjectManager.Get<Obj_AI_Base>()
-                                    .Where(obj => obj.IsValid && !obj.IsDead)
-                                    .Where(
-                                        obj =>
-                                            Vector2.Distance(new Vector2(Game.CursorPos.X, Game.CursorPos.Y),
-                                                new Vector2(obj.Position.X, obj.Position.Y)) <= MouseOverInfoRange)
-                                    .ToList();
+                            _cursorDrawCircles = !_cursorDrawCircles;
+                        }
+                        break;
+                    case CursorOverInfo:
+                        if (args.Msg == WM_KEYUP)
+                        {
+                            IEnumerable<Obj_AI_Base> list = GetMonstersNearCursor();
                             foreach (Obj_AI_Base obj in list)
                             {
                                 Console.WriteLine(
@@ -235,15 +251,15 @@ namespace PacketLogger
             }
         }
 
-        private void LogChat(string message)
+        private IEnumerable<Obj_AI_Base> GetMonstersNearCursor()
         {
-            Game.PrintChat(
-                string.Format(
-                    "<font color='#F7A100'>{0}: {1}</font>",
-                    Assembly.GetExecutingAssembly().GetName().Name,
-                    message
-                    )
-                );
+            return ObjectManager.Get<Obj_AI_Base>()
+                .Where(obj => obj.IsValid)
+                .Where(
+                    obj =>
+                        Vector2.Distance(new Vector2(Game.CursorPos.X, Game.CursorPos.Y),
+                            new Vector2(obj.Position.X, obj.Position.Y)) <= CursorOverInfoRange)
+                .ToList();
         }
 
         private void LogPacket(GamePacketEventArgs args)
