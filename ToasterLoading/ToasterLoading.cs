@@ -26,6 +26,9 @@ namespace ToasterLoading
 {
     internal class ToasterLoading
     {
+        private const int WM_KEYUP = 0x101;
+        private const int Disable = 0x20; // Space
+
         private const int SecondsToWait = 250;
 
         private readonly MemoryStream _packet;
@@ -36,7 +39,18 @@ namespace ToasterLoading
         {
             _packet = new MemoryStream();
             Game.OnGameSendPacket += OnGameSendPacket;
+            Game.OnWndProc += OnWndProc;
             Drawing.OnDraw += OnDraw;
+        }
+
+        private void OnWndProc(WndEventArgs args)
+        {
+            if (args.Msg == WM_KEYUP && args.WParam == Disable)
+            {
+                _escaped = true;
+                Game.SendPacket(_packet.ToArray(), PacketChannel.C2S, PacketProtocolFlags.Reliable);
+                _packet.Close();
+            }
         }
 
         private void OnDraw(EventArgs args)
