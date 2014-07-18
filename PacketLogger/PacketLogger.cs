@@ -83,12 +83,19 @@ namespace PacketLogger
 
         private void OnDraw(EventArgs args)
         {
-            Drawing.DrawText(10, 10, Color.Yellow, "Packet Active:");
-            Drawing.DrawText(10, 30, Color.Yellow, "Packet Send:");
-            Drawing.DrawText(10, 50, Color.Yellow, "Packet Process:");
-            Drawing.DrawText(135, 10, _active ? Color.Green : Color.Red, _active ? "Enabled" : "Disabled");
-            Drawing.DrawText(135, 30, _packetSend ? Color.Green : Color.Red, _packetSend ? "Enabled" : "Disabled");
-            Drawing.DrawText(135, 50, _packetProcess ? Color.Green : Color.Red, _packetProcess ? "Enabled" : "Disabled");
+            try
+            {
+                Drawing.DrawText(10, 10, Color.Yellow, "Packet Active:");
+                Drawing.DrawText(10, 30, Color.Yellow, "Packet Send:");
+                Drawing.DrawText(10, 50, Color.Yellow, "Packet Process:");
+                Drawing.DrawText(135, 10, _active ? Color.Green : Color.Red, _active ? "Enabled" : "Disabled");
+                Drawing.DrawText(135, 30, _packetSend ? Color.Green : Color.Red, _packetSend ? "Enabled" : "Disabled");
+                Drawing.DrawText(135, 50, _packetProcess ? Color.Green : Color.Red, _packetProcess ? "Enabled" : "Disabled");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
         }
 
         private void OnWndProc(WndEventArgs args)
