@@ -59,7 +59,7 @@ PacketLogger helps you to debug incoming and outgoing packets from League of Leg
     Enable/disable the PacketLogger as long as you press the key.
 #### Numpad 0
 
-    Clears the console
+    Clears the console.
 #### Numpad 1
 
     Enable/disable the logging from all outgoing packets.
