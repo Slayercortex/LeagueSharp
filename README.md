@@ -38,7 +38,7 @@ ToasterLoading prolongs the loading screen by ~4 minutes.
 
 TowerRange
 ----------
-    TowerRange display the attack range from all towers.
+TowerRange display the attack range from all towers.
 
 WaypointTracker
 ---------------
