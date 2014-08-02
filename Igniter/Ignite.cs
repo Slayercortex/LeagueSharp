@@ -29,6 +29,7 @@ namespace Igniter
         private const int Range = 600;
         private const int HealReducion = 50;
         private const int Duration = 5;
+        private const int Ticks = 5;
 
         private readonly List<Potion> _potions = new List<Potion>
         {
@@ -49,12 +50,14 @@ namespace Igniter
             }
         };
 
+        public event EventHandler<IgniteEventArgs> CanKillEnemies;
+
+        public event EventHandler<IgniteEventArgs> CanKillstealEnemies;
+
         public Ignite()
         {
             Game.OnGameUpdate += OnGameUpdate;
         }
-
-        public event EventHandler<IgniteEventArgs> CanKillEnemies;
 
         protected virtual void OnCanKillEnemies(IgniteEventArgs e)
         {
@@ -62,13 +65,23 @@ namespace Igniter
             if (handler != null) handler(this, e);
         }
 
+        protected virtual void OnCanKillstealEnemies(IgniteEventArgs e)
+        {
+            EventHandler<IgniteEventArgs> handler = CanKillstealEnemies;
+            if (handler != null) handler(this, e);
+        }
+
         private void OnGameUpdate(EventArgs args)
         {
-            List<Obj_AI_Hero> killable =
-                EnemiesInRange().Where(enemy => CalculateHealth(enemy) <= CalculateIgniteDamage()).ToList();
+            List<Obj_AI_Hero> killable = EnemiesInRange().Where(enemy => CalculateHealth(enemy) <= CalculateIgniteDamage()).ToList();
             if (killable.Count > 0)
             {
                 OnCanKillEnemies(new IgniteEventArgs { Enemies = killable });
+                List<Obj_AI_Hero> killsteal = EnemiesInRange().Where(enemy => enemy.Health <= (CalculateIgniteDamage() / Ticks)).ToList();
+                if (killsteal.Count > 0)
+                {
+                    OnCanKillstealEnemies(new IgniteEventArgs { Enemies = killsteal });
+                }
             }
         }
 
@@ -93,6 +106,11 @@ namespace Igniter
             return CalculateHealth(enemy) <= CalculateIgniteDamage();
         }
 
+        public bool CanKillsteal(Obj_AI_Hero enemy)
+        {
+            return enemy.Health <= (CalculateIgniteDamage() / Ticks);
+        }
+
         private SpellDataInst GetIgniteSpell()
         {
             SpellDataInst[] spells = ObjectManager.Player.SummonerSpellbook.Spells;
@@ -101,7 +119,7 @@ namespace Igniter
 
         private double CalculateIgniteDamage()
         {
-            return ObjectManager.Player.Level*20 + 50;
+            return ObjectManager.Player.Level * 20 + 50;
         }
 
         private double CalculateHealth(Obj_AI_Hero hero)
@@ -114,13 +132,13 @@ namespace Igniter
             {
                 HP5 -= cPot.HP5;
             }
-            healthReg += (HP5/5)*Duration;
+            healthReg += (HP5 / 5) * Duration;
             if (cPot != null && buff != null)
             {
                 int remaining = Convert.ToInt32(buff.EndTime - Game.Time);
-                healthReg += remaining > Duration ? (cPot.HP5/5)*Duration : (cPot.HP5/5)*remaining;
+                healthReg += remaining > Duration ? (cPot.HP5 / 5) * Duration : (cPot.HP5 / 5) * remaining;
             }
-            return hero.Health + ((healthReg*HealReducion)/100);
+            return hero.Health + ((healthReg * HealReducion) / 100);
         }
 
         private IEnumerable<Obj_AI_Hero> EnemiesInRange()
@@ -138,18 +156,18 @@ namespace Igniter
         {
             return
                 (from potion in _potions
-                    from buff in hero.Buffs
-                    where buff.Name == potion.Name && buff.IsActive
-                    select potion).FirstOrDefault();
+                 from buff in hero.Buffs
+                 where buff.Name == potion.Name && buff.IsActive
+                 select potion).FirstOrDefault();
         }
 
         private BuffInstance GetActivePotionBuff(Obj_AI_Hero hero)
         {
             return
                 (from potion in _potions
-                    from buff in hero.Buffs
-                    where buff.Name == potion.Name && buff.IsActive
-                    select buff).FirstOrDefault();
+                 from buff in hero.Buffs
+                 where buff.Name == potion.Name && buff.IsActive
+                 select buff).FirstOrDefault();
         }
     }
 }
