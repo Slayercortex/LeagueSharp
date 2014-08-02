@@ -1,9 +1,12 @@
 ﻿using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using LeagueSharp;
+using Microsoft.CSharp;
 using SharpDX;
 using Color = System.Drawing.Color;
 
@@ -45,10 +48,10 @@ namespace PacketLogger
         private const int CursorDrawingRadius = 25;
 
         private readonly Action _onLoadAction;
-        private bool _active;
+        private bool _active = true;
         private bool _cursorDrawCircles;
         private bool _packetProcess;
-        private bool _packetSend;
+        private bool _packetSend = true;
         private bool _switchActive;
 
         public PacketLogger()
@@ -56,6 +59,7 @@ namespace PacketLogger
             _onLoadAction = new CallOnce().A(OnLoad);
             Drawing.OnDraw += OnDraw;
             Game.OnGameUpdate += OnGameUpdate;
+            Game.OnGameInput += OnGameInput;
             Game.OnWndProc += OnWndProc;
             Game.OnGameSendPacket += OnGameSendPacket;
             Game.OnGameProcessPacket += OnGameProcessPacket;
@@ -197,8 +201,9 @@ namespace PacketLogger
                             foreach (Obj_AI_Base obj in list)
                             {
                                 Console.WriteLine(
-                                    "Name: {0}{6}NetworkId: {1}{6}NetworkId(byte): {2}{6}Position: x:{3} y:{4} z:{5}{6}{6}",
-                                    obj.Name, obj.NetworkId, (byte) obj.NetworkId, obj.Position.X, obj.Position.Y,
+                                    "Name: {0}{7}Type: {1}{7}NetworkId: {2}{7}NetworkId(byte): {3}{7}Position: x: {4} y: {5} z: {6}{7}{7}",
+                                    obj.Name, obj.Type, obj.NetworkId, (byte) obj.NetworkId, obj.Position.X,
+                                    obj.Position.Y,
                                     obj.Position.Z, Environment.NewLine);
                             }
                         }
@@ -251,6 +256,47 @@ namespace PacketLogger
             }
         }
 
+        private void OnGameInput(GameInputEventArgs args)
+        {
+            try
+            {
+                Match match = Regex.Match(args.Input, @"return\[(.*)\]");
+                if (match.Success)
+                {
+                    var includeAssemblies = new[]
+                    {
+                        "System.dll",
+                        "System.Core.dll",
+                        "System.Drawing.dll",
+                        @"C:\Users\Lizzaran\Desktop\LeagueSharp\Assemblies\System\LeagueSharp.dll",
+                        @"C:\Users\Lizzaran\Desktop\LeagueSharp\Assemblies\System\SharpDX.dll"
+                    };
+                    using (var codedom = new CSharpCodeProvider())
+                    {
+                        CompilerResults res = codedom.CompileAssemblyFromSource(
+                            new CompilerParameters(includeAssemblies)
+                            {
+                                GenerateInMemory = true
+                            },
+                                "using System;using System.Collections.Generic;using System.IO;using System.Linq;using LeagueSharp;using Microsoft.CSharp;using SharpDX;using Color = System.Drawing.Color; public class Codedom { public " + match.Groups[1].Value + " Execute() { {" + args.Input.Remove(0, ("return[" + match.Groups[1].Value + "] ").Length) + "} }}"
+                            );
+                        Type type = res.CompiledAssembly.GetType("Codedom");
+
+                        object obj = Activator.CreateInstance(type);
+                        object output = type.GetMethod("Execute").Invoke(obj, new object[] {});
+                        Game.PrintChat("PacketLogger: " + args.Input.Remove(0, ("return[" + match.Groups[1].Value + "] ").Length));
+                        if (match.Groups[1].Value.ToLower() != "void")
+                            Console.WriteLine(output);
+                    }
+                    args.Process = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+        }
+
         private IEnumerable<Obj_AI_Base> GetMonstersNearCursor()
         {
             return ObjectManager.Get<Obj_AI_Base>()
@@ -264,7 +310,7 @@ namespace PacketLogger
 
         private void LogPacket(GamePacketEventArgs args)
         {
-            Console.WriteLine("Channel: {0}{3}Flag:{1}{3}Data:{2}{3}{3}", args.Channel, args.ProtocolFlag,
+            Console.WriteLine("Channel: {0}{3}Flag: {1}{3}Data: {2}{3}{3}", args.Channel, args.ProtocolFlag,
                 args.PacketData.Aggregate(string.Empty,
                     (current, d) => current + (d.ToString(CultureInfo.InvariantCulture) + " ")), Environment.NewLine);
         }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using LeagueSharp;
+using LeagueSharp.Common;
 
 /*
     Copyright (C) 2014 Nikita Bernthaler
@@ -25,11 +26,7 @@ namespace AutoPotion
 {
     internal class AutoPotion
     {
-        private const bool UseManaPotion = true;
-        private const bool UseHealthPotion = true;
-
-        private const int MinManaPercentage = 60;
-        private const int MinHealthPercentage = 60;
+        private readonly Menu _menu;
 
         private readonly Action _onLoadAction;
 
@@ -71,6 +68,15 @@ namespace AutoPotion
 
         public AutoPotion()
         {
+            _menu = new Menu(Assembly.GetExecutingAssembly().GetName().Name, Assembly.GetExecutingAssembly().GetName().Name, true);
+            _menu.AddSubMenu(new Menu("Health", "Health"));
+            _menu.AddSubMenu(new Menu("Mana", "Mana"));
+            _menu.SubMenu("Health").AddItem(new MenuItem("HealthPotion", "Use Health Potion").SetValue(true));
+            _menu.SubMenu("Health").AddItem(new MenuItem("HealthPercent", "HP Trigger Percent").SetValue(new Slider(60)));
+            _menu.SubMenu("Mana").AddItem(new MenuItem("ManaPotion", "Use Mana Potion").SetValue(true));
+            _menu.SubMenu("Mana").AddItem(new MenuItem("ManaPercent", "MP Trigger Percent").SetValue(new Slider(60)));
+            _menu.AddToMainMenu();
+
             _onLoadAction = new CallOnce().A(OnLoad);
             _potions = _potions.OrderBy(x => x.Priority).ToList();
             Game.OnGameUpdate += OnGameUpdate;
@@ -92,9 +98,9 @@ namespace AutoPotion
             try
             {
                 _onLoadAction();
-                if (UseHealthPotion)
+                if (_menu.Item("HealthPotion").GetValue<Boolean>())
                 {
-                    if (GetPlayerHealthPercentage() <= MinHealthPercentage)
+                    if (GetPlayerHealthPercentage() <= _menu.Item("HealthPercent").GetValue<Slider>().Value)
                     {
                         InventorySlot healthSlot = GetPotionSlot(PotionType.Health);
                         if (!IsBuffActive(PotionType.Health))
@@ -102,9 +108,9 @@ namespace AutoPotion
                     }
                 }
 
-                if (UseManaPotion)
+                if (_menu.Item("ManaPotion").GetValue<Boolean>())
                 {
-                    if (GetPlayerManaPercentage() <= MinManaPercentage)
+                    if (GetPlayerManaPercentage() <= _menu.Item("ManaPercent").GetValue<Slider>().Value)
                     {
                         InventorySlot manaSlot = GetPotionSlot(PotionType.Mana);
                         if (!IsBuffActive(PotionType.Mana))

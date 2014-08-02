@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Reflection;
 using LeagueSharp;
+using LeagueSharp.Common;
 using SharpDX;
 using Color = System.Drawing.Color;
 
@@ -29,10 +30,17 @@ namespace TowerRange
         private const float TurretRange = 910;
         private const double MaxDistance = 1450;
 
+        private readonly Menu _menu;
+
         private readonly Action _onLoadAction;
 
         public TowerRange()
         {
+            _menu = new Menu(Assembly.GetExecutingAssembly().GetName().Name, Assembly.GetExecutingAssembly().GetName().Name, true);
+            _menu.AddItem(new MenuItem("DrawAlly", "Draw Ally").SetValue(true));
+            _menu.AddItem(new MenuItem("DrawEnemy", "Draw Enemy").SetValue(true));
+            _menu.AddToMainMenu();
+
             _onLoadAction = new CallOnce().A(OnLoad);
             Game.OnGameUpdate += OnGameUpdate;
             Drawing.OnDraw += OnDraw;
@@ -65,13 +73,10 @@ namespace TowerRange
         {
             try
             {
-                foreach (
-                    Obj_Turret tower in
-                        ObjectManager.Get<Obj_Turret>()
-                            .Where(tower => tower.IsValid && !tower.IsDead)
-                            .Where(
-                                tower => Vector3.Distance(ObjectManager.Player.Position, tower.Position) <= MaxDistance)
-                    )
+                foreach (Obj_Turret tower in ObjectManager.Get<Obj_Turret>()
+                    .Where(tower => tower.IsValid && !tower.IsDead)
+                    .Where(
+                        tower => Vector3.Distance(ObjectManager.Player.Position, tower.Position) <= MaxDistance).Where(tower => _menu.Item("DrawAlly").GetValue<Boolean>() || !tower.IsAlly).Where(tower => _menu.Item("DrawEnemy").GetValue<Boolean>() || !tower.IsEnemy))
                 {
                     Drawing.DrawCircle(tower.Position, TurretRange, tower.IsAlly ? Color.Green : Color.Red);
                 }

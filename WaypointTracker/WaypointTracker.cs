@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Drawing;
+using System.Linq;
 using System.Reflection;
 using LeagueSharp;
+using LeagueSharp.Common;
 
 /*
     Copyright (C) 2014 Nikita Bernthaler
@@ -24,10 +26,17 @@ namespace WaypointTracker
 {
     internal class WaypointTracker
     {
+        private readonly Menu _menu;
+
         private readonly Action _onLoadAction;
 
         public WaypointTracker()
         {
+            _menu = new Menu(Assembly.GetExecutingAssembly().GetName().Name, Assembly.GetExecutingAssembly().GetName().Name, true);
+            _menu.AddItem(new MenuItem("DrawAlly", "Draw Ally").SetValue(true));
+            _menu.AddItem(new MenuItem("DrawEnemy", "Draw Enemy").SetValue(true));
+            _menu.AddToMainMenu();
+
             _onLoadAction = new CallOnce().A(OnLoad);
             Game.OnGameUpdate += OnGameUpdate;
             Drawing.OnDraw += OnDraw;
@@ -58,11 +67,8 @@ namespace WaypointTracker
 
         private void OnDraw(EventArgs args)
         {
-            foreach (Obj_AI_Hero hero in ObjectManager.Get<Obj_AI_Hero>())
+            foreach (Obj_AI_Hero hero in from hero in ObjectManager.Get<Obj_AI_Hero>() where hero.IsValid && !hero.IsDead && !hero.IsBot && hero.Path.Length != 0 where _menu.Item("DrawAlly").GetValue<Boolean>() || !hero.IsAlly where _menu.Item("DrawEnemy").GetValue<Boolean>() || !hero.IsEnemy select hero)
             {
-                if (!hero.IsValid || hero.IsDead || hero.IsBot || hero.Path.Length == 0)
-                    continue;
-
                 float[] lastPathPos = Drawing.WorldToScreen(hero.Path[hero.Path.Length > 1 ? hero.Path.Length - 1 : 0]);
                 float[] heroPos = Drawing.WorldToScreen(hero.Position);
                 for (int index = 0; index < hero.Path.Length; index++)

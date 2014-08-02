@@ -28,7 +28,7 @@ QuickSmite
 -----------
 QuickSmite automatically smites big jungle camps (Baron, Dragon, Blue, Red) when they can get killed.
 
-ToastLoading
+ToasterLoading
 ------------
 ToasterLoading prolongs the loading screen by ~4 minutes.
 
@@ -77,7 +77,7 @@ PacketLogger helps you to debug incoming and outgoing packets from League of Leg
     Logs the current player networkid.
 #### Numpad 8
 
-    Logs the current player.
+    Logs the current player position.
 #### Numpad +
 
     Brings the console to the foreground.
