@@ -26,11 +26,9 @@ namespace AutoPotion
 {
     internal class AutoPotion
     {
-        private readonly Menu _menu;
+        private Menu _menu;
 
-        private readonly Action _onLoadAction;
-
-        private readonly List<Potion> _potions = new List<Potion>
+        private List<Potion> _potions = new List<Potion>
         {
             new Potion
             {
@@ -68,36 +66,46 @@ namespace AutoPotion
 
         public AutoPotion()
         {
-            _menu = new Menu(Assembly.GetExecutingAssembly().GetName().Name, Assembly.GetExecutingAssembly().GetName().Name, true);
-            _menu.AddSubMenu(new Menu("Health", "Health"));
-            _menu.AddSubMenu(new Menu("Mana", "Mana"));
-            _menu.SubMenu("Health").AddItem(new MenuItem("HealthPotion", "Use Health Potion").SetValue(true));
-            _menu.SubMenu("Health").AddItem(new MenuItem("HealthPercent", "HP Trigger Percent").SetValue(new Slider(60)));
-            _menu.SubMenu("Mana").AddItem(new MenuItem("ManaPotion", "Use Mana Potion").SetValue(true));
-            _menu.SubMenu("Mana").AddItem(new MenuItem("ManaPercent", "MP Trigger Percent").SetValue(new Slider(60)));
-            _menu.AddToMainMenu();
-
-            _onLoadAction = new CallOnce().A(OnLoad);
-            _potions = _potions.OrderBy(x => x.Priority).ToList();
-            Game.OnGameUpdate += OnGameUpdate;
+            CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
 
-        private void OnLoad()
+        private void OnGameLoad(EventArgs args)
         {
-            Game.PrintChat(
-                string.Format(
-                    "<font color='#F7A100'>{0} v{1} loaded.</font>",
-                    Assembly.GetExecutingAssembly().GetName().Name,
-                    Assembly.GetExecutingAssembly().GetName().Version
-                    )
-                );
+            try
+            {
+                _potions = _potions.OrderBy(x => x.Priority).ToList();
+                _menu = new Menu(Assembly.GetExecutingAssembly().GetName().Name,
+                    Assembly.GetExecutingAssembly().GetName().Name, true);
+                _menu.AddSubMenu(new Menu("Health", "Health"));
+                _menu.AddSubMenu(new Menu("Mana", "Mana"));
+                _menu.SubMenu("Health").AddItem(new MenuItem("HealthPotion", "Use Health Potion").SetValue(true));
+                _menu.SubMenu("Health")
+                    .AddItem(new MenuItem("HealthPercent", "HP Trigger Percent").SetValue(new Slider(60)));
+                _menu.SubMenu("Mana").AddItem(new MenuItem("ManaPotion", "Use Mana Potion").SetValue(true));
+                _menu.SubMenu("Mana")
+                    .AddItem(new MenuItem("ManaPercent", "MP Trigger Percent").SetValue(new Slider(60)));
+                _menu.AddToMainMenu();
+
+                Game.PrintChat(
+                    string.Format(
+                        "<font color='#F7A100'>{0} v{1} loaded.</font>",
+                        Assembly.GetExecutingAssembly().GetName().Name,
+                        Assembly.GetExecutingAssembly().GetName().Version
+                        )
+                    );
+
+                Game.OnGameUpdate += OnGameUpdate;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
         }
 
         private void OnGameUpdate(EventArgs args)
         {
             try
             {
-                _onLoadAction();
                 if (_menu.Item("HealthPotion").GetValue<Boolean>())
                 {
                     if (GetPlayerHealthPercentage() <= _menu.Item("HealthPercent").GetValue<Slider>().Value)

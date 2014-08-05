@@ -26,38 +26,32 @@ namespace WaypointTracker
 {
     internal class WaypointTracker
     {
-        private readonly Menu _menu;
-
-        private readonly Action _onLoadAction;
+        private Menu _menu;
 
         public WaypointTracker()
         {
-            _menu = new Menu(Assembly.GetExecutingAssembly().GetName().Name, Assembly.GetExecutingAssembly().GetName().Name, true);
-            _menu.AddItem(new MenuItem("DrawAlly", "Draw Ally").SetValue(true));
-            _menu.AddItem(new MenuItem("DrawEnemy", "Draw Enemy").SetValue(true));
-            _menu.AddToMainMenu();
-
-            _onLoadAction = new CallOnce().A(OnLoad);
-            Game.OnGameUpdate += OnGameUpdate;
-            Drawing.OnDraw += OnDraw;
+            CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
 
-        private void OnLoad()
-        {
-            Game.PrintChat(
-                string.Format(
-                    "<font color='#F7A100'>{0} v{1} loaded.</font>",
-                    Assembly.GetExecutingAssembly().GetName().Name,
-                    Assembly.GetExecutingAssembly().GetName().Version
-                    )
-                );
-        }
-
-        private void OnGameUpdate(EventArgs args)
+        private void OnGameLoad(EventArgs args)
         {
             try
             {
-                _onLoadAction();
+                _menu = new Menu(Assembly.GetExecutingAssembly().GetName().Name,
+                    Assembly.GetExecutingAssembly().GetName().Name, true);
+                _menu.AddItem(new MenuItem("DrawAlly", "Draw Ally").SetValue(true));
+                _menu.AddItem(new MenuItem("DrawEnemy", "Draw Enemy").SetValue(true));
+                _menu.AddToMainMenu();
+
+                Game.PrintChat(
+                    string.Format(
+                        "<font color='#F7A100'>{0} v{1} loaded.</font>",
+                        Assembly.GetExecutingAssembly().GetName().Name,
+                        Assembly.GetExecutingAssembly().GetName().Version
+                        )
+                    );
+
+                Drawing.OnDraw += OnDraw;
             }
             catch (Exception ex)
             {
@@ -67,24 +61,38 @@ namespace WaypointTracker
 
         private void OnDraw(EventArgs args)
         {
-            foreach (Obj_AI_Hero hero in from hero in ObjectManager.Get<Obj_AI_Hero>() where hero.IsValid && !hero.IsDead && !hero.IsBot && hero.Path.Length != 0 where _menu.Item("DrawAlly").GetValue<Boolean>() || !hero.IsAlly where _menu.Item("DrawEnemy").GetValue<Boolean>() || !hero.IsEnemy select hero)
+            try
             {
-                float[] lastPathPos = Drawing.WorldToScreen(hero.Path[hero.Path.Length > 1 ? hero.Path.Length - 1 : 0]);
-                float[] heroPos = Drawing.WorldToScreen(hero.Position);
-                for (int index = 0; index < hero.Path.Length; index++)
+                foreach (Obj_AI_Hero hero in from hero in ObjectManager.Get<Obj_AI_Hero>()
+                    where hero.IsValid && !hero.IsDead && !hero.IsBot && hero.Path.Length != 0
+                    where _menu.Item("DrawAlly").GetValue<Boolean>() || !hero.IsAlly
+                    where _menu.Item("DrawEnemy").GetValue<Boolean>() || !hero.IsEnemy
+                    select hero)
                 {
-                    float[] curr = Drawing.WorldToScreen(hero.Path[index]);
-                    if (index > 0)
+                    float[] lastPathPos =
+                        Drawing.WorldToScreen(hero.Path[hero.Path.Length > 1 ? hero.Path.Length - 1 : 0]);
+                    float[] heroPos = Drawing.WorldToScreen(hero.Position);
+                    for (int index = 0; index < hero.Path.Length; index++)
                     {
-                        float[] prev = Drawing.WorldToScreen(hero.Path[index - 1]);
-                        Drawing.DrawLine(prev[0], prev[1], curr[0], curr[1], 3, hero.IsAlly ? Color.Green : Color.Red);
+                        float[] curr = Drawing.WorldToScreen(hero.Path[index]);
+                        if (index > 0)
+                        {
+                            float[] prev = Drawing.WorldToScreen(hero.Path[index - 1]);
+                            Drawing.DrawLine(prev[0], prev[1], curr[0], curr[1], 3,
+                                hero.IsAlly ? Color.Green : Color.Red);
+                        }
+                        else
+                        {
+                            Drawing.DrawLine(heroPos[0], heroPos[1], curr[0], curr[1], 3,
+                                hero.IsAlly ? Color.Green : Color.Red);
+                        }
                     }
-                    else
-                    {
-                        Drawing.DrawLine(heroPos[0], heroPos[1], curr[0], curr[1], 3, hero.IsAlly ? Color.Green : Color.Red);
-                    }
+                    Drawing.DrawText(lastPathPos[0], lastPathPos[1], Color.Orange, hero.BaseSkinName);
                 }
-                Drawing.DrawText(lastPathPos[0], lastPathPos[1], Color.Orange, hero.BaseSkinName);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
             }
         }
     }

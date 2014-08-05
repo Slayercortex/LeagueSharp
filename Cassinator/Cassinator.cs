@@ -117,7 +117,7 @@ namespace Cassinator
             drawingMenu.AddItem(new MenuItem("drawingE", "E Range").SetValue(false));
             drawingMenu.AddItem(new MenuItem("drawingR", "R Range").SetValue(false));
 
-            var clearMenu = new Menu("Lane Clear", "clear");
+            var clearMenu = new Menu("Lane/Jungle Clear", "clear");
             clearMenu.AddItem(new MenuItem("clearQ", "Use Q").SetValue(true));
             clearMenu.AddItem(new MenuItem("clearW", "Use W").SetValue(true));
             clearMenu.AddItem(new MenuItem("clearE", "Use E").SetValue(true));
@@ -328,7 +328,7 @@ namespace Cassinator
 
         private void CastQ(Obj_AI_Base target, bool aoe = false)
         {
-            if (ObjectManager.Player.Spellbook.GetSpell(_spellQ.Slot).State != SpellState.Ready)
+            if (ObjectManager.Player.Spellbook.CanUseSpell(_spellQ.Slot) != SpellState.Ready)
             {
                 return;
             }
@@ -349,7 +349,7 @@ namespace Cassinator
 
         private void CastW(Obj_AI_Base target, bool aoe = false)
         {
-            if (ObjectManager.Player.Spellbook.GetSpell(_spellW.Slot).State != SpellState.Ready)
+            if (ObjectManager.Player.Spellbook.CanUseSpell(_spellW.Slot) != SpellState.Ready)
             {
                 return;
             }
@@ -370,7 +370,7 @@ namespace Cassinator
 
         private void CastE(Obj_AI_Base target)
         {
-            if (ObjectManager.Player.Spellbook.GetSpell(_spellE.Slot).State != SpellState.Ready)
+            if (ObjectManager.Player.Spellbook.CanUseSpell(_spellE.Slot) != SpellState.Ready)
             {
                 return;
             }

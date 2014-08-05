@@ -34,11 +34,11 @@ namespace MapHack
         {
             _onLoadAction = new CallOnce().A(OnLoad);
             Game.OnGameUpdate += OnGameUpdate;
-            Drawing.OnDraw += OnDraw;
         }
 
         private void OnLoad()
         {
+            Drawing.OnDraw += OnDraw;
             Game.PrintChat(
                 string.Format(
                     "<font color='#F7A100'>{0} v{1} loaded.</font>",

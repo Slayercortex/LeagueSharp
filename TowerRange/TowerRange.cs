@@ -30,38 +30,32 @@ namespace TowerRange
         private const float TurretRange = 910;
         private const double MaxDistance = 1450;
 
-        private readonly Menu _menu;
-
-        private readonly Action _onLoadAction;
+        private Menu _menu;
 
         public TowerRange()
         {
-            _menu = new Menu(Assembly.GetExecutingAssembly().GetName().Name, Assembly.GetExecutingAssembly().GetName().Name, true);
-            _menu.AddItem(new MenuItem("DrawAlly", "Draw Ally").SetValue(true));
-            _menu.AddItem(new MenuItem("DrawEnemy", "Draw Enemy").SetValue(true));
-            _menu.AddToMainMenu();
-
-            _onLoadAction = new CallOnce().A(OnLoad);
-            Game.OnGameUpdate += OnGameUpdate;
-            Drawing.OnDraw += OnDraw;
+            CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
 
-        private void OnLoad()
-        {
-            Game.PrintChat(
-                string.Format(
-                    "<font color='#F7A100'>{0} v{1} loaded.</font>",
-                    Assembly.GetExecutingAssembly().GetName().Name,
-                    Assembly.GetExecutingAssembly().GetName().Version
-                    )
-                );
-        }
-
-        private void OnGameUpdate(EventArgs args)
+        private void OnGameLoad(EventArgs args)
         {
             try
             {
-                _onLoadAction();
+                _menu = new Menu(Assembly.GetExecutingAssembly().GetName().Name,
+                    Assembly.GetExecutingAssembly().GetName().Name, true);
+                _menu.AddItem(new MenuItem("DrawAlly", "Draw Ally").SetValue(true));
+                _menu.AddItem(new MenuItem("DrawEnemy", "Draw Enemy").SetValue(true));
+                _menu.AddToMainMenu();
+
+                Game.PrintChat(
+                    string.Format(
+                        "<font color='#F7A100'>{0} v{1} loaded.</font>",
+                        Assembly.GetExecutingAssembly().GetName().Name,
+                        Assembly.GetExecutingAssembly().GetName().Version
+                        )
+                    );
+
+                Drawing.OnDraw += OnDraw;
             }
             catch (Exception ex)
             {
@@ -76,7 +70,9 @@ namespace TowerRange
                 foreach (Obj_Turret tower in ObjectManager.Get<Obj_Turret>()
                     .Where(tower => tower.IsValid && !tower.IsDead)
                     .Where(
-                        tower => Vector3.Distance(ObjectManager.Player.Position, tower.Position) <= MaxDistance).Where(tower => _menu.Item("DrawAlly").GetValue<Boolean>() || !tower.IsAlly).Where(tower => _menu.Item("DrawEnemy").GetValue<Boolean>() || !tower.IsEnemy))
+                        tower => Vector3.Distance(ObjectManager.Player.Position, tower.Position) <= MaxDistance)
+                    .Where(tower => _menu.Item("DrawAlly").GetValue<bool>() || !tower.IsAlly)
+                    .Where(tower => _menu.Item("DrawEnemy").GetValue<bool>() || !tower.IsEnemy))
                 {
                     Drawing.DrawCircle(tower.Position, TurretRange, tower.IsAlly ? Color.Green : Color.Red);
                 }

@@ -43,7 +43,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AutoPotion.cs" />
-    <Compile Include="CallOnce.cs" />
     <Compile Include="Potion.cs" />
     <Compile Include="PotionType.cs" />
     <Compile Include="Program.cs" />

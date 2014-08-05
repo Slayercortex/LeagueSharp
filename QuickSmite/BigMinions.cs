@@ -25,7 +25,7 @@ namespace QuickSmite
     {
         private static readonly string[] MinionNames =
         {
-            "Worm", "Dragon", "LizardElder", "AncientGolem"
+            "TT_Spiderboss", "Worm", "Dragon", "LizardElder", "AncientGolem", "TTNGolem", "TTNWolf", "TTNWraith"
         };
 
         public static Obj_AI_Minion GetNearest(Vector3 pos)

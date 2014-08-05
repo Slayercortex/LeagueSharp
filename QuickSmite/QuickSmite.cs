@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using LeagueSharp;
+using LeagueSharp.Common;
 using SharpDX;
 using Color = System.Drawing.Color;
 
@@ -27,30 +28,42 @@ namespace QuickSmite
     internal class QuickSmite
     {
         private const string SmiteName = "SummonerSmite";
-        private readonly Action _onLoadAction;
-        private readonly Action _smiteDataAction;
 
         private bool _hasSmite;
+        private Menu _menu;
         private float _smiteRange;
         private SpellSlot _smiteSlot;
 
         public QuickSmite()
         {
-            _onLoadAction = new CallOnce().A(OnLoad);
-            _smiteDataAction = new CallOnce().A(LoadSmiteData);
-            Game.OnGameUpdate += OnGameUpdate;
-            Drawing.OnDraw += OnDraw;
+            CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
 
-        private void OnLoad()
+        private void OnGameLoad(EventArgs args)
         {
-            Game.PrintChat(
-                string.Format(
-                    "<font color='#F7A100'>{0} v{1} loaded.</font>",
-                    Assembly.GetExecutingAssembly().GetName().Name,
-                    Assembly.GetExecutingAssembly().GetName().Version
-                    )
-                );
+            try
+            {
+                _menu = new Menu(Assembly.GetExecutingAssembly().GetName().Name,
+                    Assembly.GetExecutingAssembly().GetName().Name, true);
+                _menu.AddItem(
+                    new MenuItem("Enable", "Enable").SetValue(new KeyBind("N".ToCharArray()[0], KeyBindType.Toggle)));
+                Game.PrintChat(
+                    string.Format(
+                        "<font color='#F7A100'>{0} v{1} loaded.</font>",
+                        Assembly.GetExecutingAssembly().GetName().Name,
+                        Assembly.GetExecutingAssembly().GetName().Version
+                        )
+                    );
+
+                LoadSmiteData();
+
+                Game.OnGameUpdate += OnGameUpdate;
+                Drawing.OnDraw += OnDraw;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
         }
 
         private void LoadSmiteData()
@@ -68,9 +81,7 @@ namespace QuickSmite
         {
             try
             {
-                _onLoadAction();
-                _smiteDataAction();
-                if (!_hasSmite)
+                if (!_hasSmite || !_menu.Item("Enable").GetValue<KeyBind>().Active)
                     return;
                 if (ObjectManager.Player.IsDead || !ObjectManager.Player.IsMe)
                     return;
@@ -100,9 +111,8 @@ namespace QuickSmite
         {
             try
             {
-                if (!_hasSmite)
+                if (!_hasSmite || !_menu.Item("Enable").GetValue<KeyBind>().Active)
                     return;
-
                 SpellState smiteState = ObjectManager.Player.SummonerSpellbook.CanUseSpell(_smiteSlot);
                 Drawing.DrawCircle(ObjectManager.Player.Position, _smiteRange,
                     smiteState == SpellState.Ready ? Color.Blue : Color.Gray);

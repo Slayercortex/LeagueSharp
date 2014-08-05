@@ -45,11 +45,18 @@ namespace ToasterLoading
 
         private void OnWndProc(WndEventArgs args)
         {
-            if (args.Msg == WM_KEYUP && args.WParam == Disable)
+            try
             {
-                _escaped = true;
-                Game.SendPacket(_packet.ToArray(), PacketChannel.C2S, PacketProtocolFlags.Reliable);
-                _packet.Close();
+                if (args.Msg == WM_KEYUP && args.WParam == Disable)
+                {
+                    _escaped = true;
+                    Game.SendPacket(_packet.ToArray(), PacketChannel.C2S, PacketProtocolFlags.Reliable);
+                    _packet.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
             }
         }
 

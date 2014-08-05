@@ -199,13 +199,13 @@ namespace JungleTimers
         {
             _onLoadAction = new CallOnce().A(OnLoad);
             Game.OnGameUpdate += OnGameUpdate;
-            Drawing.OnDraw += OnDraw;
-            GameObject.OnCreate += ObjectOnCreate;
-            GameObject.OnDelete += ObjectOnDelete;
         }
 
         private void OnLoad()
         {
+            GameObject.OnCreate += ObjectOnCreate;
+            GameObject.OnDelete += ObjectOnDelete;
+            Drawing.OnDraw += OnDraw;
             Game.PrintChat(
                 string.Format(
                     "<font color='#F7A100'>{0} v{1} loaded.</font>",
