@@ -101,12 +101,19 @@ namespace Cassinator
                 comboMenu.AddItem(new MenuItem("comboIgnite", "Use Ignite").SetValue(true));
 
                 var mixedMenu = new Menu("Mixed", "mixed");
+                clearMenu.AddItem(new MenuItem("mixedAttack", "Use Auto-Attacks").SetValue(false));
                 mixedMenu.AddItem(new MenuItem("mixedQ", "Harass Q").SetValue(true));
                 mixedMenu.AddItem(new MenuItem("mixedW", "Harass W").SetValue(false));
                 mixedMenu.AddItem(new MenuItem("mixedE", "Harass E").SetValue(true));
                 mixedMenu.AddItem(
                     new MenuItem("mixedToggle", "Harass Toggle").SetValue(new KeyBind("Y".ToCharArray()[0],
                         KeyBindType.Toggle)));
+
+                var clearMenu = new Menu("Lane/Jungle Clear", "clear");
+                clearMenu.AddItem(new MenuItem("clearAttack", "Use Auto-Attacks").SetValue(false));
+                clearMenu.AddItem(new MenuItem("clearQ", "Use Q").SetValue(true));
+                clearMenu.AddItem(new MenuItem("clearW", "Use W").SetValue(true));
+                clearMenu.AddItem(new MenuItem("clearE", "Use E").SetValue(true));
 
                 var ultimateMenu = new Menu("Ultimate", "ultimate");
                 ultimateMenu.AddItem(
@@ -126,10 +133,6 @@ namespace Cassinator
                 drawingMenu.AddItem(new MenuItem("drawingE", "E Range").SetValue(false));
                 drawingMenu.AddItem(new MenuItem("drawingR", "R Range").SetValue(false));
 
-                var clearMenu = new Menu("Lane/Jungle Clear", "clear");
-                clearMenu.AddItem(new MenuItem("clearQ", "Use Q").SetValue(true));
-                clearMenu.AddItem(new MenuItem("clearW", "Use W").SetValue(true));
-                clearMenu.AddItem(new MenuItem("clearE", "Use E").SetValue(true));
 
                 var exploitMenu = new Menu("Exploit", "exploit");
                 exploitMenu.AddItem(new MenuItem("exploitE", "No Face Exploit E").SetValue(true));
@@ -137,10 +140,10 @@ namespace Cassinator
                 _menu.AddSubMenu(targetSelectorMenu);
                 _menu.AddSubMenu(comboMenu);
                 _menu.AddSubMenu(mixedMenu);
+                _menu.AddSubMenu(clearMenu);
                 _menu.AddSubMenu(ultimateMenu);
                 _menu.AddSubMenu(killstealMenu);
                 _menu.AddSubMenu(drawingMenu);
-                _menu.AddSubMenu(clearMenu);
                 _menu.AddSubMenu(exploitMenu);
                 _menu.AddToMainMenu();
 
@@ -202,6 +205,7 @@ namespace Cassinator
             {
                 return;
             }
+            _orbwalker.SetAttacks(_menu.Item("mixedAttack").GetValue<bool>());
             if (_menu.Item("mixedQ").GetValue<bool>())
             {
                 if (!HasPoisonBuff(target))
@@ -287,6 +291,7 @@ namespace Cassinator
             {
                 return;
             }
+            _orbwalker.SetAttacks(_menu.Item("clearAttack").GetValue<bool>());
             if (_menu.Item("clearQ").GetValue<bool>())
             {
                 CastQ(target, true);
