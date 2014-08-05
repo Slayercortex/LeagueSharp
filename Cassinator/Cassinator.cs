@@ -32,12 +32,12 @@ namespace Cassinator
         private const string ChampionName = "Cassiopeia";
 
         private readonly Ignite _ignite = new Ignite();
-        private readonly Action _onLoadAction;
 
         private readonly HeroSpell _spellE = new HeroSpell
         {
             Slot = SpellSlot.E,
-            Range = 700
+            Range = 700,
+            Delay = 0f,
         };
 
         private readonly HeroSpell _spellQ = new HeroSpell
@@ -46,23 +46,23 @@ namespace Cassinator
             Range = 850,
             Delay = 0.6f,
             Width = 140f,
-            Speed = 99999f,
+            Speed = float.MaxValue,
             Duration = 3f
         };
 
         private readonly HeroSpell _spellR = new HeroSpell
         {
             Slot = SpellSlot.R,
-            Delay = 0.55f,
+            Delay = 0.6f,
             Width = 80f,
-            Speed = 99999f,
+            Speed = float.MaxValue,
             Range = 850
         };
 
         private readonly HeroSpell _spellW = new HeroSpell
         {
             Slot = SpellSlot.W,
-            Delay = 0.375f,
+            Delay = 0.6f,
             Width = 200f,
             Speed = 2500f,
             Range = 850
@@ -74,77 +74,10 @@ namespace Cassinator
 
         public Cassinator()
         {
-            _onLoadAction = new CallOnce().A(OnLoad);
-            Game.OnGameUpdate += OnGameUpdate;
-            Drawing.OnDraw += OnDraw;
-            _ignite.CanKillstealEnemies += IgniteOnCanKillstealEnemies;
+            CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
 
-        private void OnLoad()
-        {
-            _menu = new Menu(Assembly.GetExecutingAssembly().GetName().Name,
-                Assembly.GetExecutingAssembly().GetName().Name, true);
-
-            _menu.AddSubMenu(new Menu("Orbwalking", "Orbwalking"));
-            _orbwalker = new Orbwalking.Orbwalker(_menu.SubMenu("Orbwalking"));
-
-            var targetSelectorMenu = new Menu("Target Selector", "Target Selector");
-            SimpleTs.AddToMenu(targetSelectorMenu);
-
-            var comboMenu = new Menu("Combo", "combo");
-            comboMenu.AddItem(new MenuItem("comboIgnite", "Use Ignite").SetValue(true));
-
-            var mixedMenu = new Menu("Mixed", "mixed");
-            mixedMenu.AddItem(new MenuItem("mixedQ", "Harass Q").SetValue(true));
-            mixedMenu.AddItem(new MenuItem("mixedW", "Harass W").SetValue(false));
-            mixedMenu.AddItem(new MenuItem("mixedE", "Harass E").SetValue(true));
-
-            var ultimateMenu = new Menu("Ultimate", "ultimate");
-            ultimateMenu.AddItem(
-                new MenuItem("ultimateKey", "Hold Key").SetValue(new KeyBind("R".ToCharArray()[0], KeyBindType.Press)));
-            ultimateMenu.AddItem(new MenuItem("ultimateMin", "Min. Enemies in Range").SetValue(new Slider(1, 5, 1)));
-            ultimateMenu.AddItem(
-                new MenuItem("ultimateRange", "Range").SetValue(new Slider(_spellR.Range - 50, _spellR.Range)));
-
-            var killstealMenu = new Menu("Killsteal", "killsteal");
-            killstealMenu.AddItem(new MenuItem("killstealEnabled", "Enabled").SetValue(true));
-            killstealMenu.AddItem(new MenuItem("killstealE", "Use E").SetValue(true));
-            killstealMenu.AddItem(new MenuItem("killstealIgnite", "Use Ignite").SetValue(true));
-
-            var drawingMenu = new Menu("Drawing", "drawing");
-            drawingMenu.AddItem(new MenuItem("drawingQ", "Q Range").SetValue(false));
-            drawingMenu.AddItem(new MenuItem("drawingW", "W Range").SetValue(false));
-            drawingMenu.AddItem(new MenuItem("drawingE", "E Range").SetValue(false));
-            drawingMenu.AddItem(new MenuItem("drawingR", "R Range").SetValue(false));
-
-            var clearMenu = new Menu("Lane/Jungle Clear", "clear");
-            clearMenu.AddItem(new MenuItem("clearQ", "Use Q").SetValue(true));
-            clearMenu.AddItem(new MenuItem("clearW", "Use W").SetValue(true));
-            clearMenu.AddItem(new MenuItem("clearE", "Use E").SetValue(true));
-
-            var exploitMenu = new Menu("Exploit", "exploit");
-            exploitMenu.AddItem(new MenuItem("exploitE", "No Face Exploit E").SetValue(true));
-
-            _menu.AddSubMenu(targetSelectorMenu);
-            _menu.AddSubMenu(comboMenu);
-            _menu.AddSubMenu(mixedMenu);
-            _menu.AddSubMenu(ultimateMenu);
-            _menu.AddSubMenu(killstealMenu);
-            _menu.AddSubMenu(drawingMenu);
-            _menu.AddSubMenu(clearMenu);
-            _menu.AddSubMenu(exploitMenu);
-            _menu.AddToMainMenu();
-
-            Game.PrintChat(
-                string.Format(
-                    "<font color='#F7A100'>{0} v{1} loaded.</font>",
-                    Assembly.GetExecutingAssembly().GetName().Name,
-                    Assembly.GetExecutingAssembly().GetName().Version
-                    )
-                );
-        }
-
-        private void OnGameUpdate(EventArgs args)
+        private void OnGameLoad(EventArgs args)
         {
             try
             {
@@ -152,9 +85,90 @@ namespace Cassinator
                 {
                     return;
                 }
-                _onLoadAction();
+
+                _menu = new Menu(Assembly.GetExecutingAssembly().GetName().Name,
+                    Assembly.GetExecutingAssembly().GetName().Name, true);
+
+                _menu.AddSubMenu(new Menu("Orbwalking", "Orbwalking"));
+                _orbwalker = new Orbwalking.Orbwalker(_menu.SubMenu("Orbwalking"));
+
+                var targetSelectorMenu = new Menu("Target Selector", "Target Selector");
+                SimpleTs.AddToMenu(targetSelectorMenu);
+
+                var comboMenu = new Menu("Combo", "combo");
+                comboMenu.AddItem(new MenuItem("comboUltimate", "Use Ultimate").SetValue(false));
+                comboMenu.AddItem(new MenuItem("comboUltimateHealth", "Ultimate below Health").SetValue(new Slider(50)));
+                comboMenu.AddItem(new MenuItem("comboIgnite", "Use Ignite").SetValue(true));
+
+                var mixedMenu = new Menu("Mixed", "mixed");
+                mixedMenu.AddItem(new MenuItem("mixedQ", "Harass Q").SetValue(true));
+                mixedMenu.AddItem(new MenuItem("mixedW", "Harass W").SetValue(false));
+                mixedMenu.AddItem(new MenuItem("mixedE", "Harass E").SetValue(true));
+                mixedMenu.AddItem(
+                    new MenuItem("mixedToggle", "Harass Toggle").SetValue(new KeyBind("Y".ToCharArray()[0],
+                        KeyBindType.Toggle)));
+
+                var ultimateMenu = new Menu("Ultimate", "ultimate");
+                ultimateMenu.AddItem(
+                    new MenuItem("ultimateKey", "Hold Key").SetValue(new KeyBind("R".ToCharArray()[0], KeyBindType.Press)));
+                ultimateMenu.AddItem(new MenuItem("ultimateMin", "Min. Enemies in Range").SetValue(new Slider(1, 5, 1)));
+                ultimateMenu.AddItem(
+                    new MenuItem("ultimateRange", "Range").SetValue(new Slider(_spellR.Range - 50, _spellR.Range)));
+
+                var killstealMenu = new Menu("Killsteal", "killsteal");
+                killstealMenu.AddItem(new MenuItem("killstealEnabled", "Enabled").SetValue(true));
+                killstealMenu.AddItem(new MenuItem("killstealE", "Use E").SetValue(true));
+                killstealMenu.AddItem(new MenuItem("killstealIgnite", "Use Ignite").SetValue(true));
+
+                var drawingMenu = new Menu("Drawing", "drawing");
+                drawingMenu.AddItem(new MenuItem("drawingQ", "Q Range").SetValue(false));
+                drawingMenu.AddItem(new MenuItem("drawingW", "W Range").SetValue(false));
+                drawingMenu.AddItem(new MenuItem("drawingE", "E Range").SetValue(false));
+                drawingMenu.AddItem(new MenuItem("drawingR", "R Range").SetValue(false));
+
+                var clearMenu = new Menu("Lane/Jungle Clear", "clear");
+                clearMenu.AddItem(new MenuItem("clearQ", "Use Q").SetValue(true));
+                clearMenu.AddItem(new MenuItem("clearW", "Use W").SetValue(true));
+                clearMenu.AddItem(new MenuItem("clearE", "Use E").SetValue(true));
+
+                var exploitMenu = new Menu("Exploit", "exploit");
+                exploitMenu.AddItem(new MenuItem("exploitE", "No Face Exploit E").SetValue(true));
+
+                _menu.AddSubMenu(targetSelectorMenu);
+                _menu.AddSubMenu(comboMenu);
+                _menu.AddSubMenu(mixedMenu);
+                _menu.AddSubMenu(ultimateMenu);
+                _menu.AddSubMenu(killstealMenu);
+                _menu.AddSubMenu(drawingMenu);
+                _menu.AddSubMenu(clearMenu);
+                _menu.AddSubMenu(exploitMenu);
+                _menu.AddToMainMenu();
+
+                Game.PrintChat(
+                    string.Format(
+                        "<font color='#F7A100'>{0} v{1} loaded.</font>",
+                        Assembly.GetExecutingAssembly().GetName().Name,
+                        Assembly.GetExecutingAssembly().GetName().Version
+                        )
+                    );
+
+                Game.OnGameUpdate += OnGameUpdate;
+                Drawing.OnDraw += OnDraw;
+                _ignite.CanKillstealEnemies += IgniteOnCanKillstealEnemies;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+        }
+
+        private void OnGameUpdate(EventArgs args)
+        {
+            try
+            {
                 if (!ObjectManager.Player.IsDead)
                 {
+                    _orbwalker.SetAttacks(true);
                     Killsteal();
                     Ultimate();
                     Mixed();
@@ -176,24 +190,14 @@ namespace Cassinator
             {
                 return;
             }
-            if (Vector3.Distance(ObjectManager.Player.Position, target.Position) >
-                _menu.Item("ultimateRange").GetValue<Slider>().Value)
-            {
-                return;
-            }
-            Prediction.PredictionOutput bestPosition = Prediction.GetBestAOEPosition(target, _spellR.Delay,
-                _spellR.Width, _spellR.Speed, ObjectManager.Player.Position,
-                _menu.Item("ultimateRange").GetValue<Slider>().Value, false, Prediction.SkillshotType.SkillshotCone);
-            if (bestPosition.TargetsHit >= _menu.Item("ultimateMin").GetValue<Slider>().Value)
-            {
-                ObjectManager.Player.Spellbook.CastSpell(_spellR.Slot, bestPosition.CastPosition);
-            }
+            CastR(target);
         }
 
         private void Mixed()
         {
             Obj_AI_Base target = _orbwalker.GetTarget();
-            if (_orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.Mixed || !target.IsValidTarget() ||
+            if ((_orbwalker.ActiveMode != Orbwalking.OrbwalkingMode.Mixed &&
+                 _menu.Item("mixedToggle").GetValue<KeyBind>().Active == false) || !target.IsValidTarget() ||
                 target.GetType() != typeof (Obj_AI_Hero))
             {
                 return;
@@ -238,9 +242,19 @@ namespace Cassinator
             {
                 return;
             }
+            _orbwalker.SetAttacks(
+                !(ObjectManager.Player.Spellbook.CanUseSpell(_spellQ.Slot) == SpellState.Ready ||
+                  ObjectManager.Player.Spellbook.CanUseSpell(_spellW.Slot) == SpellState.Ready ||
+                  (HasPoisonBuff(target) && ObjectManager.Player.Spellbook.CanUseSpell(_spellE.Slot) == SpellState.Ready))
+                );
             if (_ignite.CanKill(target as Obj_AI_Hero))
             {
                 _ignite.CastIgnite(target as Obj_AI_Hero);
+            }
+            if (_menu.Item("comboUltimate").GetValue<bool>() &&
+                (target.Health*100/target.MaxHealth) <= _menu.Item("comboUltimateHealth").GetValue<Slider>().Value)
+            {
+                CastR(target);
             }
             if (!HasPoisonBuff(target))
             {
@@ -399,6 +413,26 @@ namespace Cassinator
             else
             {
                 ObjectManager.Player.Spellbook.CastSpell(_spellE.Slot, target);
+            }
+        }
+
+        private void CastR(Obj_AI_Base target)
+        {
+            if (ObjectManager.Player.Spellbook.CanUseSpell(_spellR.Slot) != SpellState.Ready)
+            {
+                return;
+            }
+            if (Vector3.Distance(ObjectManager.Player.Position, target.Position) >
+                _menu.Item("ultimateRange").GetValue<Slider>().Value)
+            {
+                return;
+            }
+            Prediction.PredictionOutput bestPosition = Prediction.GetBestAOEPosition(target, _spellR.Delay,
+                _spellR.Width, _spellR.Speed, ObjectManager.Player.Position,
+                _menu.Item("ultimateRange").GetValue<Slider>().Value, false, Prediction.SkillshotType.SkillshotCone);
+            if (bestPosition.TargetsHit >= _menu.Item("ultimateMin").GetValue<Slider>().Value)
+            {
+                ObjectManager.Player.Spellbook.CastSpell(_spellR.Slot, bestPosition.CastPosition);
             }
         }
 
