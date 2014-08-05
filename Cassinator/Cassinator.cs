@@ -101,7 +101,7 @@ namespace Cassinator
                 comboMenu.AddItem(new MenuItem("comboIgnite", "Use Ignite").SetValue(true));
 
                 var mixedMenu = new Menu("Mixed", "mixed");
-                clearMenu.AddItem(new MenuItem("mixedAttack", "Use Auto-Attacks").SetValue(false));
+                mixedMenu.AddItem(new MenuItem("mixedAttack", "Use Auto-Attacks").SetValue(false));
                 mixedMenu.AddItem(new MenuItem("mixedQ", "Harass Q").SetValue(true));
                 mixedMenu.AddItem(new MenuItem("mixedW", "Harass W").SetValue(false));
                 mixedMenu.AddItem(new MenuItem("mixedE", "Harass E").SetValue(true));
