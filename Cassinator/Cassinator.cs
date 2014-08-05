@@ -203,11 +203,7 @@ namespace Cassinator
             {
                 return;
             }
-            _orbwalker.SetAttacks(
-                !(ObjectManager.Player.Spellbook.CanUseSpell(_spellQ.Slot) == SpellState.Ready ||
-                  ObjectManager.Player.Spellbook.CanUseSpell(_spellW.Slot) == SpellState.Ready ||
-                  (HasPoisonBuff(target) && ObjectManager.Player.Spellbook.CanUseSpell(_spellE.Slot) == SpellState.Ready))
-                );
+            _orbwalker.SetAttacks(false);
             if (_menu.Item("mixedQ").GetValue<bool>())
             {
                 if (!HasPoisonBuff(target))
@@ -248,11 +244,7 @@ namespace Cassinator
             {
                 return;
             }
-            _orbwalker.SetAttacks(
-                !(ObjectManager.Player.Spellbook.CanUseSpell(_spellQ.Slot) == SpellState.Ready ||
-                  ObjectManager.Player.Spellbook.CanUseSpell(_spellW.Slot) == SpellState.Ready ||
-                  (HasPoisonBuff(target) && ObjectManager.Player.Spellbook.CanUseSpell(_spellE.Slot) == SpellState.Ready))
-                );
+            _orbwalker.SetAttacks(false);
             if (_ignite.CanKill(target as Obj_AI_Hero))
             {
                 _ignite.CastIgnite(target as Obj_AI_Hero);
@@ -447,15 +439,24 @@ namespace Cassinator
             }
         }
 
-        private void IgniteOnCanKillstealEnemies(object sender, IgniteEventArgs igniteEventArgs)
+        private void IgniteOnCanKillstealEnemies(object sender, IgniteEventArgs args)
         {
+            if (((_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Mixed ||
+                  _menu.Item("mixedToggle").GetValue<KeyBind>().Active)) &&
+                _orbwalker.GetTarget() == args.Enemies.FirstOrDefault())
+                return;
+
+            if (_orbwalker.ActiveMode == Orbwalking.OrbwalkingMode.Combo &&
+                _orbwalker.GetTarget() == args.Enemies.FirstOrDefault())
+                return;
+
             if (!_menu.Item("killstealEnabled").GetValue<bool>())
             {
                 return;
             }
             if (_menu.Item("killstealIgnite").GetValue<bool>())
             {
-                _ignite.CastIgnite(igniteEventArgs.Enemies.FirstOrDefault());
+                _ignite.CastIgnite(args.Enemies.FirstOrDefault());
             }
         }
 
