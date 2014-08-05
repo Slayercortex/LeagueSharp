@@ -45,6 +45,12 @@ namespace TowerRange
                     Assembly.GetExecutingAssembly().GetName().Name, true);
                 _menu.AddItem(new MenuItem("DrawAlly", "Draw Ally").SetValue(true));
                 _menu.AddItem(new MenuItem("DrawEnemy", "Draw Enemy").SetValue(true));
+                _menu.AddSubMenu(new Menu("Misc", "Misc"));
+                _menu.SubMenu("Misc").AddItem(new MenuItem("CircleLag", "Lag Free Circles").SetValue(true));
+                _menu.SubMenu("Misc")
+                    .AddItem(new MenuItem("CircleQuality", "Circles Quality").SetValue(new Slider(30, 100, 10)));
+                _menu.SubMenu("Misc")
+                    .AddItem(new MenuItem("CircleThickness", "Circles Thickness").SetValue(new Slider(2, 10, 1)));
                 _menu.AddToMainMenu();
 
                 Game.PrintChat(
@@ -74,7 +80,16 @@ namespace TowerRange
                     .Where(tower => _menu.Item("DrawAlly").GetValue<bool>() || !tower.IsAlly)
                     .Where(tower => _menu.Item("DrawEnemy").GetValue<bool>() || !tower.IsEnemy))
                 {
-                    Drawing.DrawCircle(tower.Position, TurretRange, tower.IsAlly ? Color.Green : Color.Red);
+                    if (_menu.Item("CircleLag").GetValue<bool>())
+                    {
+                        Utility.DrawCircle(tower.Position, TurretRange, tower.IsAlly ? Color.Green : Color.Red,
+                            _menu.Item("CircleThickness").GetValue<Slider>().Value,
+                            _menu.Item("CircleQuality").GetValue<Slider>().Value);
+                    }
+                    else
+                    {
+                        Drawing.DrawCircle(tower.Position, TurretRange, tower.IsAlly ? Color.Green : Color.Red);
+                    }
                 }
             }
             catch (Exception ex)

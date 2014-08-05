@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using LeagueSharp;
+using LeagueSharp.Common;
 using SharpDX;
 using Color = System.Drawing.Color;
 
@@ -29,32 +30,50 @@ namespace LasthitMarker
     {
         private const int MaxMinionDistance = 1000;
 
-        private readonly Action _onLoadAction;
         private List<Obj_AI_Minion> _killableMinions = new List<Obj_AI_Minion>();
+
+        private Menu _menu;
 
         public LasthitMarker()
         {
-            _onLoadAction = new CallOnce().A(OnLoad);
-            Game.OnGameUpdate += OnGameUpdate;
+            CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
 
-        private void OnLoad()
+        private void OnGameLoad(EventArgs args)
         {
-            Drawing.OnDraw += OnDraw;
-            Game.PrintChat(
-                string.Format(
-                    "<font color='#F7A100'>{0} v{1} loaded.</font>",
-                    Assembly.GetExecutingAssembly().GetName().Name,
-                    Assembly.GetExecutingAssembly().GetName().Version
-                    )
-                );
+            try
+            {
+                _menu = new Menu(Assembly.GetExecutingAssembly().GetName().Name,
+                    Assembly.GetExecutingAssembly().GetName().Name, true);
+                _menu.AddSubMenu(new Menu("Misc", "Misc"));
+                _menu.SubMenu("Misc").AddItem(new MenuItem("CircleLag", "Lag Free Circles").SetValue(true));
+                _menu.SubMenu("Misc")
+                    .AddItem(new MenuItem("CircleQuality", "Circles Quality").SetValue(new Slider(30, 100, 10)));
+                _menu.SubMenu("Misc")
+                    .AddItem(new MenuItem("CircleThickness", "Circles Thickness").SetValue(new Slider(2, 10, 1)));
+                _menu.AddToMainMenu();
+
+                Game.PrintChat(
+                    string.Format(
+                        "<font color='#F7A100'>{0} v{1} loaded.</font>",
+                        Assembly.GetExecutingAssembly().GetName().Name,
+                        Assembly.GetExecutingAssembly().GetName().Version
+                        )
+                    );
+
+                Game.OnGameUpdate += OnGameUpdate;
+                Drawing.OnDraw += OnDraw;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
         }
 
         private void OnGameUpdate(EventArgs args)
         {
             try
             {
-                _onLoadAction();
                 _killableMinions = (from minion in ObjectManager.Get<Obj_AI_Minion>()
                     where minion.IsValid && minion.IsVisible && minion.IsEnemy && !minion.IsDead
                     where Vector3.Distance(ObjectManager.Player.Position, minion.Position) <= MaxMinionDistance
@@ -73,7 +92,16 @@ namespace LasthitMarker
             {
                 foreach (Obj_AI_Minion minion in _killableMinions)
                 {
-                    Drawing.DrawCircle(minion.Position, minion.BoundingRadius + 25, Color.Gray);
+                    if (_menu.Item("CircleLag").GetValue<bool>())
+                    {
+                        Utility.DrawCircle(minion.Position, minion.BoundingRadius + 30, Color.Gray,
+                            _menu.Item("CircleThickness").GetValue<Slider>().Value,
+                            _menu.Item("CircleQuality").GetValue<Slider>().Value);
+                    }
+                    else
+                    {
+                        Drawing.DrawCircle(minion.Position, minion.BoundingRadius + 30, Color.Gray);
+                    }
                 }
             }
             catch (Exception ex)

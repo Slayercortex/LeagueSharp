@@ -45,7 +45,14 @@ namespace QuickSmite
             {
                 _menu = new Menu(Assembly.GetExecutingAssembly().GetName().Name,
                     Assembly.GetExecutingAssembly().GetName().Name, true);
-                _menu.AddItem(new MenuItem("Enable", "Enable").SetValue(new KeyBind("N".ToCharArray()[0], KeyBindType.Toggle)));
+                _menu.AddItem(
+                    new MenuItem("Enable", "Enable").SetValue(new KeyBind("N".ToCharArray()[0], KeyBindType.Toggle)));
+                _menu.AddSubMenu(new Menu("Misc", "Misc"));
+                _menu.SubMenu("Misc").AddItem(new MenuItem("CircleLag", "Lag Free Circles").SetValue(true));
+                _menu.SubMenu("Misc")
+                    .AddItem(new MenuItem("CircleQuality", "Circles Quality").SetValue(new Slider(30, 100, 10)));
+                _menu.SubMenu("Misc")
+                    .AddItem(new MenuItem("CircleThickness", "Circles Thickness").SetValue(new Slider(2, 10, 1)));
                 _menu.AddToMainMenu();
 
                 Game.PrintChat(
@@ -84,7 +91,7 @@ namespace QuickSmite
             {
                 if (!_hasSmite || !_menu.Item("Enable").GetValue<KeyBind>().Active)
                     return;
-                if (ObjectManager.Player.IsDead || !ObjectManager.Player.IsMe)
+                if (ObjectManager.Player.IsDead || ObjectManager.Player.IsStunned)
                     return;
                 Obj_AI_Minion minion = BigMinions.GetNearest(ObjectManager.Player.Position);
                 if (minion != null)
@@ -115,8 +122,18 @@ namespace QuickSmite
                 if (!_hasSmite || !_menu.Item("Enable").GetValue<KeyBind>().Active)
                     return;
                 SpellState smiteState = ObjectManager.Player.SummonerSpellbook.CanUseSpell(_smiteSlot);
-                Drawing.DrawCircle(ObjectManager.Player.Position, _smiteRange,
-                    smiteState == SpellState.Ready ? Color.Blue : Color.Gray);
+                if (_menu.Item("CircleLag").GetValue<bool>())
+                {
+                    Utility.DrawCircle(ObjectManager.Player.Position, _smiteRange,
+                        smiteState == SpellState.Ready ? Color.Blue : Color.Gray,
+                        _menu.Item("CircleThickness").GetValue<Slider>().Value,
+                        _menu.Item("CircleQuality").GetValue<Slider>().Value);
+                }
+                else
+                {
+                    Drawing.DrawCircle(ObjectManager.Player.Position, _smiteRange,
+                        smiteState == SpellState.Ready ? Color.Blue : Color.Gray);
+                }
             }
             catch (Exception ex)
             {

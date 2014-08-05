@@ -135,6 +135,11 @@ namespace Cassinator
                 var exploitMenu = new Menu("Exploit", "exploit");
                 exploitMenu.AddItem(new MenuItem("exploitE", "No Face Exploit E").SetValue(true));
 
+                var miscMenu = new Menu("Misc", "misc");
+                miscMenu.AddItem(new MenuItem("CircleLag", "Lag Free Circles").SetValue(true));
+                miscMenu.AddItem(new MenuItem("CircleQuality", "Circles Quality").SetValue(new Slider(30, 100, 10)));
+                miscMenu.AddItem(new MenuItem("CircleThickness", "Circles Thickness").SetValue(new Slider(2, 10, 1)));
+
                 _menu.AddSubMenu(targetSelectorMenu);
                 _menu.AddSubMenu(comboMenu);
                 _menu.AddSubMenu(mixedMenu);
@@ -143,6 +148,7 @@ namespace Cassinator
                 _menu.AddSubMenu(killstealMenu);
                 _menu.AddSubMenu(drawingMenu);
                 _menu.AddSubMenu(exploitMenu);
+                _menu.AddSubMenu(miscMenu);
                 _menu.AddToMainMenu();
 
                 Game.PrintChat(
@@ -468,22 +474,53 @@ namespace Cassinator
                 {
                     return;
                 }
-                if (_menu.Item("drawingQ").GetValue<bool>())
+                if (_menu.Item("CircleLag").GetValue<bool>())
                 {
-                    Drawing.DrawCircle(ObjectManager.Player.Position, _spellQ.Range, Color.Gray);
+                    if (_menu.Item("drawingQ").GetValue<bool>())
+                    {
+                        Utility.DrawCircle(ObjectManager.Player.Position, _spellQ.Range, Color.Gray,
+                            _menu.Item("CircleThickness").GetValue<Slider>().Value,
+                            _menu.Item("CircleQuality").GetValue<Slider>().Value);
+                    }
+                    if (_menu.Item("drawingW").GetValue<bool>())
+                    {
+                        Utility.DrawCircle(ObjectManager.Player.Position, _spellW.Range, Color.Gray,
+                            _menu.Item("CircleThickness").GetValue<Slider>().Value,
+                            _menu.Item("CircleQuality").GetValue<Slider>().Value);
+                    }
+                    if (_menu.Item("drawingE").GetValue<bool>())
+                    {
+                        Utility.DrawCircle(ObjectManager.Player.Position, _spellE.Range, Color.Gray,
+                            _menu.Item("CircleThickness").GetValue<Slider>().Value,
+                            _menu.Item("CircleQuality").GetValue<Slider>().Value);
+                    }
+                    if (_menu.Item("drawingR").GetValue<bool>())
+                    {
+                        Utility.DrawCircle(ObjectManager.Player.Position,
+                            _menu.Item("ultimateRange").GetValue<Slider>().Value, Color.Gray,
+                            _menu.Item("CircleThickness").GetValue<Slider>().Value,
+                            _menu.Item("CircleQuality").GetValue<Slider>().Value);
+                    }
                 }
-                if (_menu.Item("drawingW").GetValue<bool>())
+                else
                 {
-                    Drawing.DrawCircle(ObjectManager.Player.Position, _spellW.Range, Color.Gray);
-                }
-                if (_menu.Item("drawingE").GetValue<bool>())
-                {
-                    Drawing.DrawCircle(ObjectManager.Player.Position, _spellE.Range, Color.Gray);
-                }
-                if (_menu.Item("drawingR").GetValue<bool>())
-                {
-                    Drawing.DrawCircle(ObjectManager.Player.Position,
-                        _menu.Item("ultimateRange").GetValue<Slider>().Value, Color.Gray);
+                    if (_menu.Item("drawingQ").GetValue<bool>())
+                    {
+                        Drawing.DrawCircle(ObjectManager.Player.Position, _spellQ.Range, Color.Gray);
+                    }
+                    if (_menu.Item("drawingW").GetValue<bool>())
+                    {
+                        Drawing.DrawCircle(ObjectManager.Player.Position, _spellW.Range, Color.Gray);
+                    }
+                    if (_menu.Item("drawingE").GetValue<bool>())
+                    {
+                        Drawing.DrawCircle(ObjectManager.Player.Position, _spellE.Range, Color.Gray);
+                    }
+                    if (_menu.Item("drawingR").GetValue<bool>())
+                    {
+                        Drawing.DrawCircle(ObjectManager.Player.Position,
+                            _menu.Item("ultimateRange").GetValue<Slider>().Value, Color.Gray);
+                    }
                 }
             }
             catch (Exception ex)
