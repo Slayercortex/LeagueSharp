@@ -5,6 +5,23 @@ using System.Reflection;
 using LeagueSharp;
 using LeagueSharp.Common;
 
+/*
+    Copyright (C) 2014 Nikita Bernthaler
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 namespace UniversalLeveler
 {
     internal class UniversalLeveler
@@ -22,6 +39,13 @@ namespace UniversalLeveler
             {
                 _menu = new Menu(Assembly.GetExecutingAssembly().GetName().Name,
                     Assembly.GetExecutingAssembly().GetName().Name, true);
+                _menu.AddItem(new MenuItem("Pattern", "Early Level Pattern").SetValue(new StringList(new[]
+                {
+                    "x 2 3 1",
+                    "x 2 1",
+                    "x 1 3",
+                    "x 1 2"
+                })));
                 _menu.AddItem(new MenuItem("Q", "Q").SetValue(new Slider(3, 3, 1)));
                 _menu.AddItem(new MenuItem("W", "W").SetValue(new Slider(1, 3, 1)));
                 _menu.AddItem(new MenuItem("E", "E").SetValue(new Slider(2, 3, 1)));
@@ -66,6 +90,28 @@ namespace UniversalLeveler
             }.OrderBy(x => x.Value).Reverse().ToList();
         }
 
+        private MenuInfo GetMenuInfoByPriority(int priority)
+        {
+            return new List<MenuInfo>
+            {
+                new MenuInfo
+                {
+                    Slot = SpellSlot.Q,
+                    Value = _menu.Item("Q").GetValue<Slider>().Value
+                },
+                new MenuInfo
+                {
+                    Slot = SpellSlot.W,
+                    Value = _menu.Item("W").GetValue<Slider>().Value
+                },
+                new MenuInfo
+                {
+                    Slot = SpellSlot.E,
+                    Value = _menu.Item("E").GetValue<Slider>().Value
+                }
+            }.OrderBy(x => x.Value).Reverse().First(s => s.Value == priority);
+        }
+
         private void OnLevelUp(Obj_AI_Base sender, CustomEvents.Unit.OnLevelUpEventArgs args)
         {
             try
@@ -84,15 +130,54 @@ namespace UniversalLeveler
 
                 ObjectManager.Player.Spellbook.LevelUpSpell(SpellSlot.R);
 
-                if (args.NewLevel == 4)
+                var mf = new MenuInfo();
+                switch (args.NewLevel)
                 {
-                    ObjectManager.Player.Spellbook.LevelUpSpell(GetOrderedList().Reverse().ToList()[0].Slot);
+                    case 2:
+                        switch (_menu.Item("Pattern").GetValue<StringList>().SelectedIndex)
+                        {
+                            case 0:
+                            case 1:
+                                mf = GetMenuInfoByPriority(2);
+                                break;
+                            case 2:
+                            case 3:
+                                mf = GetMenuInfoByPriority(1);
+                                break;
+                        }
+                        break;
+                    case 3:
+                        switch (_menu.Item("Pattern").GetValue<StringList>().SelectedIndex)
+                        {
+                            case 0:
+                            case 2:
+                                mf = GetMenuInfoByPriority(3);
+                                break;
+                            case 1:
+                                mf = GetMenuInfoByPriority(1);
+                                break;
+                            case 3:
+                                mf = GetMenuInfoByPriority(2);
+                                break;
+                        }
+                        break;
+                    case 4:
+                        switch (_menu.Item("Pattern").GetValue<StringList>().SelectedIndex)
+                        {
+                            case 0:
+                                mf = GetMenuInfoByPriority(1);
+                                break;
+                        }
+                        break;
+                }
+                if (mf != null)
+                {
+                    ObjectManager.Player.Spellbook.LevelUpSpell(mf.Slot);
                 }
 
-                foreach (MenuInfo mf in GetOrderedList())
+                foreach (MenuInfo mi in GetOrderedList())
                 {
-                    Console.WriteLine(mf.Slot.ToString());
-                    ObjectManager.Player.Spellbook.LevelUpSpell(mf.Slot);
+                    ObjectManager.Player.Spellbook.LevelUpSpell(mi.Slot);
                 }
             }
             catch (Exception ex)
