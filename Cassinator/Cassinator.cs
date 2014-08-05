@@ -101,7 +101,6 @@ namespace Cassinator
                 comboMenu.AddItem(new MenuItem("comboIgnite", "Use Ignite").SetValue(true));
 
                 var mixedMenu = new Menu("Mixed", "mixed");
-                mixedMenu.AddItem(new MenuItem("mixedAttack", "Use Auto-Attacks").SetValue(false));
                 mixedMenu.AddItem(new MenuItem("mixedQ", "Harass Q").SetValue(true));
                 mixedMenu.AddItem(new MenuItem("mixedW", "Harass W").SetValue(false));
                 mixedMenu.AddItem(new MenuItem("mixedE", "Harass E").SetValue(true));
@@ -110,7 +109,6 @@ namespace Cassinator
                         KeyBindType.Toggle)));
 
                 var clearMenu = new Menu("Lane/Jungle Clear", "clear");
-                clearMenu.AddItem(new MenuItem("clearAttack", "Use Auto-Attacks").SetValue(false));
                 clearMenu.AddItem(new MenuItem("clearQ", "Use Q").SetValue(true));
                 clearMenu.AddItem(new MenuItem("clearW", "Use W").SetValue(true));
                 clearMenu.AddItem(new MenuItem("clearE", "Use E").SetValue(true));
@@ -205,7 +203,11 @@ namespace Cassinator
             {
                 return;
             }
-            _orbwalker.SetAttacks(_menu.Item("mixedAttack").GetValue<bool>());
+            _orbwalker.SetAttacks(
+                !(ObjectManager.Player.Spellbook.CanUseSpell(_spellQ.Slot) == SpellState.Ready ||
+                  ObjectManager.Player.Spellbook.CanUseSpell(_spellW.Slot) == SpellState.Ready ||
+                  (HasPoisonBuff(target) && ObjectManager.Player.Spellbook.CanUseSpell(_spellE.Slot) == SpellState.Ready))
+                );
             if (_menu.Item("mixedQ").GetValue<bool>())
             {
                 if (!HasPoisonBuff(target))
@@ -291,7 +293,11 @@ namespace Cassinator
             {
                 return;
             }
-            _orbwalker.SetAttacks(_menu.Item("clearAttack").GetValue<bool>());
+            _orbwalker.SetAttacks(
+                !(ObjectManager.Player.Spellbook.CanUseSpell(_spellQ.Slot) == SpellState.Ready ||
+                  ObjectManager.Player.Spellbook.CanUseSpell(_spellW.Slot) == SpellState.Ready ||
+                  (HasPoisonBuff(target) && ObjectManager.Player.Spellbook.CanUseSpell(_spellE.Slot) == SpellState.Ready))
+                );
             if (_menu.Item("clearQ").GetValue<bool>())
             {
                 CastQ(target, true);
@@ -337,7 +343,7 @@ namespace Cassinator
                             .Where(
                                 hero =>
                                     hero.IsValidTarget() && hero.IsEnemy &&
-                                    Vector3.Distance(ObjectManager.Player.Position, hero.Position) > _spellE.Range)
+                                    Vector3.Distance(ObjectManager.Player.Position, hero.ServerPosition) > _spellE.Range)
                             .Where(hero => DamageLib.getDmg(hero, DamageLib.SpellType.E) >= hero.Health))
                 {
                     CastE(hero);
@@ -351,7 +357,7 @@ namespace Cassinator
             {
                 return;
             }
-            if (Vector3.Distance(ObjectManager.Player.Position, target.Position) > _spellQ.Range)
+            if (Vector3.Distance(ObjectManager.Player.Position, target.ServerPosition) > _spellQ.Range)
             {
                 return;
             }
@@ -372,7 +378,7 @@ namespace Cassinator
             {
                 return;
             }
-            if (Vector3.Distance(ObjectManager.Player.Position, target.Position) > _spellW.Range)
+            if (Vector3.Distance(ObjectManager.Player.Position, target.ServerPosition) > _spellW.Range)
             {
                 return;
             }
@@ -393,7 +399,7 @@ namespace Cassinator
             {
                 return;
             }
-            if (Vector3.Distance(ObjectManager.Player.Position, target.Position) > _spellE.Range)
+            if (Vector3.Distance(ObjectManager.Player.Position, target.ServerPosition) > _spellE.Range)
             {
                 return;
             }
@@ -427,7 +433,7 @@ namespace Cassinator
             {
                 return;
             }
-            if (Vector3.Distance(ObjectManager.Player.Position, target.Position) >
+            if (Vector3.Distance(ObjectManager.Player.Position, target.ServerPosition) >
                 _menu.Item("ultimateRange").GetValue<Slider>().Value)
             {
                 return;
