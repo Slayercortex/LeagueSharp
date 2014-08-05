@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using LeagueSharp;
+using LeagueSharp.Common;
 
 /*
     Copyright (C) 2014 Nikita Bernthaler
@@ -30,31 +31,36 @@ namespace CloneRevealer
             "Shaco", "LeBlanc", "MonkeyKing", "Yorick"
         };
 
-        private readonly Action _onLoadAction;
+        private Menu _menu;
 
         public CloneRevealer()
         {
-            _onLoadAction = new CallOnce().A(OnLoad);
-            Game.OnGameUpdate += OnGameUpdate;
+            CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
 
-        private void OnLoad()
-        {
-            Drawing.OnDraw += OnDraw;
-            Game.PrintChat(
-                string.Format(
-                    "<font color='#F7A100'>{0} v{1} loaded.</font>",
-                    Assembly.GetExecutingAssembly().GetName().Name,
-                    Assembly.GetExecutingAssembly().GetName().Version
-                    )
-                );
-        }
-
-        private void OnGameUpdate(EventArgs args)
+        private void OnGameLoad(EventArgs args)
         {
             try
             {
-                _onLoadAction();
+                _menu = new Menu(Assembly.GetExecutingAssembly().GetName().Name,
+                    Assembly.GetExecutingAssembly().GetName().Name, true);
+                _menu.AddSubMenu(new Menu("Misc", "Misc"));
+                _menu.SubMenu("Misc").AddItem(new MenuItem("CircleLag", "Lag Free Circles").SetValue(true));
+                _menu.SubMenu("Misc")
+                    .AddItem(new MenuItem("CircleQuality", "Circles Quality").SetValue(new Slider(30, 100, 10)));
+                _menu.SubMenu("Misc")
+                    .AddItem(new MenuItem("CircleThickness", "Circles Thickness").SetValue(new Slider(2, 10, 1)));
+                _menu.AddToMainMenu();
+
+                Game.PrintChat(
+                    string.Format(
+                        "<font color='#F7A100'>{0} v{1} loaded.</font>",
+                        Assembly.GetExecutingAssembly().GetName().Name,
+                        Assembly.GetExecutingAssembly().GetName().Version
+                        )
+                    );
+
+                Drawing.OnDraw += OnDraw;
             }
             catch (Exception ex)
             {
@@ -72,7 +78,16 @@ namespace CloneRevealer
                             .Where(hero => hero.IsValid && hero.IsEnemy && !hero.IsDead)
                             .Where(hero => _champions.Contains(hero.Name)))
                 {
-                    Drawing.DrawCircle(hero.Position, hero.BoundingRadius + 25, Color.Yellow);
+                    if (_menu.Item("CircleLag").GetValue<bool>())
+                    {
+                        Utility.DrawCircle(hero.Position, hero.BoundingRadius + 30, Color.Yellow,
+                            _menu.Item("CircleThickness").GetValue<Slider>().Value,
+                            _menu.Item("CircleQuality").GetValue<Slider>().Value);
+                    }
+                    else
+                    {
+                        Drawing.DrawCircle(hero.Position, hero.BoundingRadius + 30, Color.Yellow);
+                    }
                 }
             }
             catch (Exception ex)

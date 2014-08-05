@@ -35,6 +35,9 @@
     <Reference Include="LeagueSharp">
       <HintPath>..\..\..\..\..\Desktop\LeagueSharp\Assemblies\System\LeagueSharp.dll</HintPath>
     </Reference>
+    <Reference Include="LeagueSharp.Common">
+      <HintPath>..\..\..\..\..\Desktop\LeagueSharp\Assemblies\System\LeagueSharp.Common.dll</HintPath>
+    </Reference>
     <Reference Include="SharpDX">
       <HintPath>..\..\..\..\..\Desktop\LeagueSharp\Assemblies\System\SharpDX.dll</HintPath>
     </Reference>
@@ -43,7 +46,6 @@
     <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CallOnce.cs" />
     <Compile Include="CloneRevealer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
