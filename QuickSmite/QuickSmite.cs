@@ -45,8 +45,9 @@ namespace QuickSmite
             {
                 _menu = new Menu(Assembly.GetExecutingAssembly().GetName().Name,
                     Assembly.GetExecutingAssembly().GetName().Name, true);
-                _menu.AddItem(
-                    new MenuItem("Enable", "Enable").SetValue(new KeyBind("N".ToCharArray()[0], KeyBindType.Toggle)));
+                _menu.AddItem(new MenuItem("Enable", "Enable").SetValue(new KeyBind("N".ToCharArray()[0], KeyBindType.Toggle)));
+                _menu.AddToMainMenu();
+
                 Game.PrintChat(
                     string.Format(
                         "<font color='#F7A100'>{0} v{1} loaded.</font>",
