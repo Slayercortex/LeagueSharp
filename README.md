@@ -13,9 +13,9 @@ JungleTimers
 ------------
 JungleTimers will draw all the timers from jungle camps, which you had vision on when they got cleared, on the minimap.
 
-LastHitMarker
+LasthitMarker
 --------------
-LastHitMarker draws circles around minions which can be killed with one autoattack.
+LasthitMarker draws circles around minions which can be killed with one autoattack.
 
 Considers also armor, magic resist, runes and mastieres.
 
@@ -39,6 +39,10 @@ ToasterLoading prolongs the loading screen by ~4 minutes.
 TowerRange
 ----------
 TowerRange display the attack range from all towers.
+
+UniversalLeveler
+---------------
+UniversalLeveler automatically levels up your spells. From level 2-3 or 2-4 it uses a selectable pattern.
 
 WaypointTracker
 ---------------
