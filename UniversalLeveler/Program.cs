@@ -4,7 +4,7 @@
     {
         private static void Main(string[] args)
         {
-            new AutoLevel();
+            new UniversalLeveler();
         }
     }
 }

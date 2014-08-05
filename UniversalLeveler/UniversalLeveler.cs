@@ -7,11 +7,11 @@ using LeagueSharp.Common;
 
 namespace UniversalLeveler
 {
-    internal class AutoLevel
+    internal class UniversalLeveler
     {
         private Menu _menu;
 
-        public AutoLevel()
+        public UniversalLeveler()
         {
             CustomEvents.Game.OnGameLoad += OnGameLoad;
         }
