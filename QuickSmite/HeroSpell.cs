@@ -69,15 +69,15 @@ namespace QuickSmite
 
         public double CalculateDamage()
         {
-            if (Name == "Nunu")
+            switch (Name)
             {
-                return 250 + 150*ObjectManager.Player.Spellbook.GetSpell(Slot).Level;
+                case "Nunu":
+                    return 250 + 150*ObjectManager.Player.Spellbook.GetSpell(Slot).Level;
+                case "Chogath":
+                    return 1000 + 0.7*(ObjectManager.Player.BaseAbilityDamage + ObjectManager.Player.FlatMagicDamageMod);
+                default:
+                    return 0;
             }
-            if (Name == "Chogath")
-            {
-                return 1000 + 0.7*(ObjectManager.Player.BaseAbilityDamage + ObjectManager.Player.FlatMagicDamageMod);
-            }
-            return 0;
         }
     }
 }
