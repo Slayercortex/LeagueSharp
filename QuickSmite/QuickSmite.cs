@@ -1,10 +1,10 @@
 using System;
+using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using LeagueSharp;
 using LeagueSharp.Common;
-using SharpDX;
-using Color = System.Drawing.Color;
 
 /*
     Copyright (C) 2014 Nikita Bernthaler
@@ -27,12 +27,18 @@ namespace QuickSmite
 {
     internal class QuickSmite
     {
-        private const string SmiteName = "SummonerSmite";
+        private readonly List<HeroSpell> _heroSpells = new List<HeroSpell>
+        {
+            new HeroSpell("Nunu", SpellSlot.Q, 125),
+            new HeroSpell("Chogath", SpellSlot.R, 175)
+        };
 
-        private bool _hasSmite;
+        private Obj_AI_Minion _currentMinion;
+
+        private HeroSpell _heroSpell;
         private Menu _menu;
-        private float _smiteRange;
-        private SpellSlot _smiteSlot;
+
+        private Smite _smite;
 
         public QuickSmite()
         {
@@ -46,13 +52,21 @@ namespace QuickSmite
                 _menu = new Menu(Assembly.GetExecutingAssembly().GetName().Name,
                     Assembly.GetExecutingAssembly().GetName().Name, true);
                 _menu.AddItem(
-                    new MenuItem("Enable", "Enable").SetValue(new KeyBind("N".ToCharArray()[0], KeyBindType.Toggle)));
-                _menu.AddSubMenu(new Menu("Misc", "Misc"));
-                _menu.SubMenu("Misc").AddItem(new MenuItem("CircleLag", "Lag Free Circles").SetValue(true));
-                _menu.SubMenu("Misc")
-                    .AddItem(new MenuItem("CircleQuality", "Circles Quality").SetValue(new Slider(30, 100, 10)));
-                _menu.SubMenu("Misc")
-                    .AddItem(new MenuItem("CircleThickness", "Circles Thickness").SetValue(new Slider(2, 10, 1)));
+                    new MenuItem("Enabled", "Enabled").SetValue(new KeyBind("N".ToCharArray()[0], KeyBindType.Toggle,
+                        true)));
+
+                var spellsMenu = new Menu("Spells", "Spells");
+                spellsMenu.AddItem(new MenuItem("Smite", "Use Smite").SetValue(true));
+                spellsMenu.AddItem(new MenuItem("Nunu", "Use Nunu Q").SetValue(true));
+                spellsMenu.AddItem(new MenuItem("Chogath", "Use Cho'Gath R").SetValue(true));
+
+                var miscMenu = new Menu("Misc", "Misc");
+                miscMenu.AddItem(new MenuItem("CircleLag", "Lag Free Circles").SetValue(true));
+                miscMenu.AddItem(new MenuItem("CircleQuality", "Circles Quality").SetValue(new Slider(30, 100, 10)));
+                miscMenu.AddItem(new MenuItem("CircleThickness", "Circles Thickness").SetValue(new Slider(2, 10, 1)));
+
+                _menu.AddSubMenu(spellsMenu);
+                _menu.AddSubMenu(miscMenu);
                 _menu.AddToMainMenu();
 
                 Game.PrintChat(
@@ -63,7 +77,8 @@ namespace QuickSmite
                         )
                     );
 
-                LoadSmiteData();
+                _smite = new Smite();
+                _heroSpell = _heroSpells.FirstOrDefault(s => s.Available);
 
                 Game.OnGameUpdate += OnGameUpdate;
                 Drawing.OnDraw += OnDraw;
@@ -74,38 +89,95 @@ namespace QuickSmite
             }
         }
 
-        private void LoadSmiteData()
-        {
-            SpellDataInst[] spells = ObjectManager.Player.SummonerSpellbook.Spells;
-            foreach (SpellDataInst spell in spells.Where(spell => spell.Name == SmiteName))
-            {
-                _hasSmite = true;
-                _smiteSlot = spell.Slot;
-                _smiteRange = spell.SData.CastRange[0];
-            }
-        }
-
         private void OnGameUpdate(EventArgs args)
         {
             try
             {
-                if (!_hasSmite || !_menu.Item("Enable").GetValue<KeyBind>().Active)
+                if (!_menu.Item("Enabled").GetValue<KeyBind>().Active)
                     return;
-                if (ObjectManager.Player.IsDead || ObjectManager.Player.IsStunned)
+                if (!SmiteEnabled() && !HeroSpellEnabled())
                     return;
-                Obj_AI_Minion minion = BigMinions.GetNearest(ObjectManager.Player.Position);
-                if (minion != null)
+                _currentMinion = BigMinions.GetNearest(ObjectManager.Player.Position);
+                if (_currentMinion != null && _currentMinion.Health <= CalculateDamage(_currentMinion))
                 {
-                    if (IsMinionSmiteable(minion))
+                    KillMinion(_currentMinion);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+        }
+
+        private void KillMinion(Obj_AI_Minion minion)
+        {
+            if (HeroSpellEnabled() && _heroSpell.CanUseSpell(minion))
+                _heroSpell.CastSpell(minion);
+            if (SmiteEnabled() && _smite.CanUseSpell(minion))
+                _smite.CastSpell(minion);
+        }
+
+        private double CalculateDamage(Obj_AI_Minion target)
+        {
+            double damage = 0;
+            if (SmiteEnabled() && _smite.CanUseSpell(target))
+                damage += _smite.CalculateDamage();
+            if (HeroSpellEnabled() && _heroSpell.CanUseSpell(target))
+                damage += _heroSpell.CalculateDamage();
+            return damage;
+        }
+
+        private bool HeroSpellEnabled()
+        {
+            return _heroSpell != null && _heroSpell.Available &&
+                   (_heroSpell.Name == "Nunu" && _menu.Item("Nunu").GetValue<bool>() ||
+                    _heroSpell.Name == "Chogath" && _menu.Item("Chogath").GetValue<bool>());
+        }
+
+        private bool SmiteEnabled()
+        {
+            return _smite.Available && _menu.Item("Smite").GetValue<bool>();
+        }
+
+        private void OnDraw(EventArgs args)
+        {
+            try
+            {
+                if (!_menu.Item("Enabled").GetValue<KeyBind>().Active)
+                    return;
+                if (!SmiteEnabled() && !HeroSpellEnabled())
+                    return;
+
+                if (_menu.Item("CircleLag").GetValue<bool>())
+                {
+                    if (SmiteEnabled())
                     {
-                        if (minion.Health <= GetSmiteDamage())
-                        {
-                            SpellState smiteState = ObjectManager.Player.SummonerSpellbook.CanUseSpell(_smiteSlot);
-                            if (smiteState == SpellState.Ready)
-                            {
-                                ObjectManager.Player.SummonerSpellbook.CastSpell(_smiteSlot, minion);
-                            }
-                        }
+                        Utility.DrawCircle(ObjectManager.Player.Position, _smite.Range,
+                            _smite.CanUseSpell() && _smite.IsInRange(_currentMinion) ? Color.Blue : Color.Gray,
+                            _menu.Item("CircleThickness").GetValue<Slider>().Value,
+                            _menu.Item("CircleQuality").GetValue<Slider>().Value);
+                    }
+                    if (HeroSpellEnabled())
+                    {
+                        Utility.DrawCircle(ObjectManager.Player.Position,
+                            _heroSpell.TrueRange,
+                            _heroSpell.CanUseSpell() && _heroSpell.IsInRange(_currentMinion) ? Color.Blue : Color.Gray,
+                            _menu.Item("CircleThickness").GetValue<Slider>().Value,
+                            _menu.Item("CircleQuality").GetValue<Slider>().Value);
+                    }
+                }
+                else
+                {
+                    if (SmiteEnabled())
+                    {
+                        Drawing.DrawCircle(ObjectManager.Player.Position, _smite.Range,
+                            _smite.CanUseSpell() && _smite.IsInRange(_currentMinion) ? Color.Blue : Color.Gray);
+                    }
+                    if (HeroSpellEnabled())
+                    {
+                        Drawing.DrawCircle(ObjectManager.Player.Position,
+                            _heroSpell.TrueRange,
+                            _heroSpell.CanUseSpell() && _heroSpell.IsInRange(_currentMinion) ? Color.Blue : Color.Gray);
                     }
                 }
             }
@@ -113,56 +185,6 @@ namespace QuickSmite
             {
                 Console.WriteLine(ex.ToString());
             }
-        }
-
-        private void OnDraw(EventArgs args)
-        {
-            try
-            {
-                if (!_hasSmite || !_menu.Item("Enable").GetValue<KeyBind>().Active)
-                    return;
-                SpellState smiteState = ObjectManager.Player.SummonerSpellbook.CanUseSpell(_smiteSlot);
-                if (_menu.Item("CircleLag").GetValue<bool>())
-                {
-                    Utility.DrawCircle(ObjectManager.Player.Position, _smiteRange,
-                        smiteState == SpellState.Ready ? Color.Blue : Color.Gray,
-                        _menu.Item("CircleThickness").GetValue<Slider>().Value,
-                        _menu.Item("CircleQuality").GetValue<Slider>().Value);
-                }
-                else
-                {
-                    Drawing.DrawCircle(ObjectManager.Player.Position, _smiteRange,
-                        smiteState == SpellState.Ready ? Color.Blue : Color.Gray);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-            }
-        }
-
-        private int GetSmiteDamage()
-        {
-            int level = ObjectManager.Player.Level;
-            int[] stages =
-            {
-                20*level + 370,
-                30*level + 330,
-                40*level + 240,
-                50*level + 100
-            };
-            return stages.Max();
-        }
-
-        private bool IsMinionSmiteable(Obj_AI_Minion minion)
-        {
-            if (minion.IsDead || minion.IsInvulnerable || minion.IsAlly)
-                return false;
-            if (Vector3.Distance(ObjectManager.Player.Position, minion.Position) <= _smiteRange)
-            {
-                return true;
-            }
-            return false;
         }
     }
 }
