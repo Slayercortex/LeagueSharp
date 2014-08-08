@@ -55,6 +55,7 @@ namespace QuickSmite
                 spellsMenu.AddItem(new MenuItem("Smite", "Use Smite").SetValue(true));
                 spellsMenu.AddItem(new MenuItem("Nunu", "Use Nunu Q").SetValue(true));
                 spellsMenu.AddItem(new MenuItem("Chogath", "Use Cho'Gath R").SetValue(true));
+                spellsMenu.AddItem(new MenuItem("Olaf", "Use Olaf E").SetValue(true));
 
                 var miscMenu = new Menu("Misc", "Misc");
                 miscMenu.AddItem(new MenuItem("CircleLag", "Lag Free Circles").SetValue(true));
@@ -77,7 +78,8 @@ namespace QuickSmite
                 _heroSpells = new List<HeroSpell>
                 {
                     new HeroSpell("Nunu", SpellSlot.Q, 125),
-                    new HeroSpell("Chogath", SpellSlot.R, 175)
+                    new HeroSpell("Chogath", SpellSlot.R, 175),
+                    new HeroSpell("Olaf", SpellSlot.E, 125)
                 };
                 _heroSpell = _heroSpells.FirstOrDefault(s => s.Available);
 
@@ -132,6 +134,7 @@ namespace QuickSmite
         {
             return _heroSpell != null && _heroSpell.Available &&
                    (_heroSpell.Name == "Nunu" && _menu.Item("Nunu").GetValue<bool>() ||
+                    _heroSpell.Name == "Olaf" && _menu.Item("Olaf").GetValue<bool>() ||
                     _heroSpell.Name == "Chogath" && _menu.Item("Chogath").GetValue<bool>());
         }
 
