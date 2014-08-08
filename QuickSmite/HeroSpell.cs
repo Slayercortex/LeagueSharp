@@ -40,17 +40,13 @@ namespace QuickSmite
         public bool CanUseSpell()
         {
             return Available && !ObjectManager.Player.IsDead && !ObjectManager.Player.IsStunned &&
-                   Slot != SpellSlot.Unknown &&
-                   ObjectManager.Player.Spellbook.CanUseSpell(Slot) == SpellState.Ready;
+                   Slot != SpellSlot.Unknown && ObjectManager.Player.Spellbook.CanUseSpell(Slot) == SpellState.Ready;
         }
 
         public bool CanUseSpell(Obj_AI_Minion target)
         {
-            return Available && !ObjectManager.Player.IsDead && !ObjectManager.Player.IsStunned &&
-                   Slot != SpellSlot.Unknown &&
-                   ObjectManager.Player.Spellbook.CanUseSpell(Slot) == SpellState.Ready && target != null &&
-                   target.IsValid &&
-                   !target.IsInvulnerable && !target.IsAlly && IsInRange(target);
+            return Available && CanUseSpell() && target != null && target.IsValid && !target.IsInvulnerable &&
+                   !target.IsAlly && IsInRange(target);
         }
 
         public bool IsInRange(Obj_AI_Minion target)

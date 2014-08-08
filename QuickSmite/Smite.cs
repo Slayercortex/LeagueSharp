@@ -30,8 +30,8 @@ namespace QuickSmite
 
         public Smite()
         {
-            SpellDataInst[] spells = ObjectManager.Player.SummonerSpellbook.Spells;
-            foreach (SpellDataInst spell in spells.Where(spell => spell.Name == SummonerName))
+            var spells = ObjectManager.Player.SummonerSpellbook.Spells;
+            foreach (var spell in spells.Where(spell => spell.Name == SummonerName))
             {
                 Available = true;
                 Slot = spell.Slot;
@@ -60,10 +60,8 @@ namespace QuickSmite
 
         public bool CanUseSpell(Obj_AI_Minion target)
         {
-            return Available && !ObjectManager.Player.IsDead && !ObjectManager.Player.IsStunned &&
-                   Slot != SpellSlot.Unknown &&
-                   ObjectManager.Player.SummonerSpellbook.CanUseSpell(Slot) == SpellState.Ready &&
-                   target != null && target.IsValid && !target.IsInvulnerable && !target.IsAlly && IsInRange(target);
+            return Available && CanUseSpell() && target != null && target.IsValid && !target.IsInvulnerable &&
+                   !target.IsAlly && IsInRange(target);
         }
 
         public bool IsInRange(Obj_AI_Minion target)

@@ -30,16 +30,20 @@ namespace QuickSmite
 
         public static Obj_AI_Minion GetNearest(Vector3 pos)
         {
-            double? shortest = null;
-            Obj_AI_Minion sMinion = null;
-            foreach (
-                Obj_AI_Minion minion in
-                    ObjectManager.Get<Obj_AI_Minion>()
-                        .Where(minion => minion.IsValid && MinionNames.Any(name => minion.Name.StartsWith(name))))
+            var minions =
+                ObjectManager.Get<Obj_AI_Minion>()
+                    .Where(minion => minion.IsValid && MinionNames.Any(name => minion.Name.StartsWith(name)));
+            var objAiMinions = minions as Obj_AI_Minion[] ?? minions.ToArray();
+            Obj_AI_Minion sMinion = objAiMinions.FirstOrDefault();
+            double? nearest = null;
+            foreach (Obj_AI_Minion minion in objAiMinions)
             {
                 double distance = Vector3.Distance(pos, minion.Position);
-                shortest = shortest == null || shortest > distance ? distance : shortest;
-                sMinion = minion;
+                if (nearest == null || nearest > distance)
+                {
+                    nearest = distance;
+                    sMinion = minion;
+                }
             }
             return sMinion;
         }

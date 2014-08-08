@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using LeagueSharp;
 using LeagueSharp.Common;
+using Color = System.Drawing.Color;
 
 /*
     Copyright (C) 2014 Nikita Bernthaler
@@ -27,11 +27,7 @@ namespace QuickSmite
 {
     internal class QuickSmite
     {
-        private readonly List<HeroSpell> _heroSpells = new List<HeroSpell>
-        {
-            new HeroSpell("Nunu", SpellSlot.Q, 125),
-            new HeroSpell("Chogath", SpellSlot.R, 175)
-        };
+        private List<HeroSpell> _heroSpells;
 
         private Obj_AI_Minion _currentMinion;
 
@@ -78,6 +74,11 @@ namespace QuickSmite
                     );
 
                 _smite = new Smite();
+                _heroSpells = new List<HeroSpell>
+                {
+                    new HeroSpell("Nunu", SpellSlot.Q, 125),
+                    new HeroSpell("Chogath", SpellSlot.R, 175)
+                };
                 _heroSpell = _heroSpells.FirstOrDefault(s => s.Available);
 
                 Game.OnGameUpdate += OnGameUpdate;
@@ -153,7 +154,7 @@ namespace QuickSmite
                     if (SmiteEnabled())
                     {
                         Utility.DrawCircle(ObjectManager.Player.Position, _smite.Range,
-                            _smite.CanUseSpell() && _smite.IsInRange(_currentMinion) ? Color.Blue : Color.Gray,
+                            _smite.CanUseSpell(_currentMinion) ? Color.Blue : Color.Gray,
                             _menu.Item("CircleThickness").GetValue<Slider>().Value,
                             _menu.Item("CircleQuality").GetValue<Slider>().Value);
                     }
@@ -161,7 +162,7 @@ namespace QuickSmite
                     {
                         Utility.DrawCircle(ObjectManager.Player.Position,
                             _heroSpell.TrueRange,
-                            _heroSpell.CanUseSpell() && _heroSpell.IsInRange(_currentMinion) ? Color.Blue : Color.Gray,
+                            _heroSpell.CanUseSpell(_currentMinion) ? Color.Blue : Color.Gray,
                             _menu.Item("CircleThickness").GetValue<Slider>().Value,
                             _menu.Item("CircleQuality").GetValue<Slider>().Value);
                     }
