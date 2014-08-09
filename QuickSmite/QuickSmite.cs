@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using LeagueSharp;
 using LeagueSharp.Common;
-using Color = System.Drawing.Color;
 
 /*
     Copyright (C) 2014 Nikita Bernthaler
@@ -27,11 +27,10 @@ namespace QuickSmite
 {
     internal class QuickSmite
     {
-        private List<HeroSpell> _heroSpells;
-
         private Obj_AI_Minion _currentMinion;
 
         private HeroSpell _heroSpell;
+        private List<HeroSpell> _heroSpells;
         private Menu _menu;
 
         private Smite _smite;
@@ -79,7 +78,7 @@ namespace QuickSmite
                 {
                     new HeroSpell("Nunu", SpellSlot.Q, 125),
                     new HeroSpell("Chogath", SpellSlot.R, 175),
-                    new HeroSpell("Olaf", SpellSlot.E, 125)
+                    new HeroSpell("Olaf", SpellSlot.E, 325)
                 };
                 _heroSpell = _heroSpells.FirstOrDefault(s => s.Available);
 

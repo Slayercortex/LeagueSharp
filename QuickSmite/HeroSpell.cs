@@ -72,7 +72,8 @@ namespace QuickSmite
                 case "Chogath":
                     return 1000 + 0.7*(ObjectManager.Player.BaseAbilityDamage + ObjectManager.Player.FlatMagicDamageMod);
                 case "Olaf":
-                    return 70 + ((ObjectManager.Player.Spellbook.GetSpell(Slot).Level * 45) - 45) + ((ObjectManager.Player.BaseAttackDamage + ObjectManager.Player.FlatPhysicalDamageMod) * 0.16);
+                    return 25 + 45*ObjectManager.Player.Spellbook.GetSpell(Slot).Level +
+                           0.4*(ObjectManager.Player.BaseAttackDamage + ObjectManager.Player.FlatPhysicalDamageMod);
                 default:
                     return 0;
             }

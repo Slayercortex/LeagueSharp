@@ -23,7 +23,7 @@ namespace QuickSmite
 {
     internal class Smite
     {
-        public readonly int Range = 780;
+        public readonly int Range = 750;
         public readonly string SummonerName = "SummonerSmite";
         public bool Available = false;
         public SpellSlot Slot = SpellSlot.Unknown;
