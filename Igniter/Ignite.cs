@@ -31,6 +31,8 @@ namespace Igniter
         private const int Duration = 5;
         private const int Ticks = 5;
 
+        private readonly Action _onLoadAction;
+
         private readonly List<Potion> _potions = new List<Potion>
         {
             new Potion
@@ -50,14 +52,22 @@ namespace Igniter
             }
         };
 
+        private SpellDataInst _ignite;
+
         public Ignite()
         {
+            _onLoadAction = new CallOnce().A(OnLoad);
             Game.OnGameUpdate += OnGameUpdate;
         }
 
         public event EventHandler<IgniteEventArgs> CanKillEnemies;
 
         public event EventHandler<IgniteEventArgs> CanKillstealEnemies;
+
+        private void OnLoad()
+        {
+            _ignite = GetSpell();
+        }
 
         protected virtual void OnCanKillEnemies(IgniteEventArgs e)
         {
@@ -75,13 +85,14 @@ namespace Igniter
         {
             try
             {
+                _onLoadAction();
                 List<Obj_AI_Hero> killable =
-                    EnemiesInRange().Where(enemy => CalculateHeroHealth(enemy) <= CalculateIgniteDamage()).ToList();
+                    EnemiesInRange().Where(enemy => CalculateHeroHealth(enemy) <= CalculateDamage()).ToList();
                 if (killable.Count > 0)
                 {
                     OnCanKillEnemies(new IgniteEventArgs {Enemies = killable});
                     List<Obj_AI_Hero> killsteal =
-                        EnemiesInRange().Where(enemy => enemy.Health <= (CalculateIgniteDamage()/Ticks)).ToList();
+                        EnemiesInRange().Where(enemy => enemy.Health <= (CalculateDamage()/Ticks)).ToList();
                     if (killsteal.Count > 0)
                     {
                         OnCanKillstealEnemies(new IgniteEventArgs {Enemies = killsteal});
@@ -94,13 +105,13 @@ namespace Igniter
             }
         }
 
-        public bool CastIgnite(Obj_AI_Hero enemy)
+        public bool Cast(Obj_AI_Hero enemy)
         {
             if (!enemy.IsValid || !enemy.IsVisible || !enemy.IsTargetable || enemy.IsDead)
             {
                 return false;
             }
-            SpellDataInst ignite = GetIgniteSpell();
+            SpellDataInst ignite = GetSpell();
             if (ignite != null && ignite.Slot != SpellSlot.Unknown && ignite.State == SpellState.Ready &&
                 ObjectManager.Player.CanCast)
             {
@@ -112,21 +123,25 @@ namespace Igniter
 
         public bool CanKill(Obj_AI_Hero enemy)
         {
-            return CalculateHeroHealth(enemy) <= CalculateIgniteDamage();
+            return CalculateHeroHealth(enemy) <= CalculateDamage();
         }
 
         public bool CanKillsteal(Obj_AI_Hero enemy)
         {
-            return enemy.Health <= (CalculateIgniteDamage()/Ticks);
+            return enemy.Health <= (CalculateDamage()/Ticks);
         }
 
-        private SpellDataInst GetIgniteSpell()
+        public SpellDataInst GetSpell()
         {
+            if (_ignite != null)
+            {
+                return _ignite;
+            }
             SpellDataInst[] spells = ObjectManager.Player.SummonerSpellbook.Spells;
             return spells.FirstOrDefault(spell => spell.Name == Name);
         }
 
-        public double CalculateIgniteDamage()
+        public double CalculateDamage()
         {
             return ObjectManager.Player.Level*20 + 50;
         }
