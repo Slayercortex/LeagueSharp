@@ -253,7 +253,7 @@ namespace Cassinator
             _orbwalker.SetAttacks(false);
             if (_ignite.CanKill(target as Obj_AI_Hero))
             {
-                _ignite.CastIgnite(target as Obj_AI_Hero);
+                _ignite.Cast(target as Obj_AI_Hero);
             }
             if (_menu.Item("comboUltimate").GetValue<bool>() &&
                 (target.Health*100/target.MaxHealth) <= _menu.Item("comboUltimateHealth").GetValue<Slider>().Value)
@@ -462,7 +462,7 @@ namespace Cassinator
             }
             if (_menu.Item("killstealIgnite").GetValue<bool>())
             {
-                _ignite.CastIgnite(args.Enemies.FirstOrDefault());
+                _ignite.Cast(args.Enemies.FirstOrDefault());
             }
         }
 
