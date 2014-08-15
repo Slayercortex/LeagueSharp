@@ -49,16 +49,13 @@ SnakeSharp brings the famous game directly into League of Legends.
 
 ### Shortcuts:
 
-#### Tab
-
-    Enable/disable the PacketLogger.
 #### Numpad 5
 
     Open and close SnakeSharp. Does auto pause it.
 #### +
 
     Increase speed.
-#### Numpad -
+#### -
 
     Decrease speed.
 #### Arrow Keys
