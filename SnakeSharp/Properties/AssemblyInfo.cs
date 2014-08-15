@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 
-[assembly: AssemblyTitle("TowerRange")]
+[assembly: AssemblyTitle("SnakeSharp")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("TowerRange")]
+[assembly: AssemblyProduct("SnakeSharp")]
 [assembly: AssemblyCopyright("Copyright ©  2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -22,7 +22,7 @@ using System.Runtime.InteropServices;
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 
-[assembly: Guid("03b02555-f442-4cf6-984b-631786a1b4ae")]
+[assembly: Guid("0b95bcfd-62bb-4883-81d6-220fc9e47140")]
 
 // Version information for an assembly consists of the following four values:
 //
