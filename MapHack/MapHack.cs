@@ -89,8 +89,8 @@ namespace MapHack
                 {
                     if (!hero.Dead && !hero.Visible)
                     {
-                        float[] pos = Drawing.WorldToMinimap(hero.LastPosition);
-                        Drawing.DrawText(pos[0] - Convert.ToInt32(hero.Name.Substring(0, 3).Length*5), pos[1] - 5,
+                        Vector2 pos = Drawing.WorldToMinimap(hero.LastPosition);
+                        Drawing.DrawText(pos.X - Convert.ToInt32(hero.Name.Substring(0, 3).Length*5), pos.Y - 5,
                             Color.Red,
                             hero.Name.Substring(0, 3));
                     }
