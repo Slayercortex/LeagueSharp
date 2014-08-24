@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using LeagueSharp;
+using SharpDX;
 
 /*
     Copyright (C) 2014 Nikita Bernthaler
@@ -91,7 +92,7 @@ namespace MapHack
                     {
                         Vector2 pos = Drawing.WorldToMinimap(hero.LastPosition);
                         Drawing.DrawText(pos.X - Convert.ToInt32(hero.Name.Substring(0, 3).Length*5), pos.Y - 5,
-                            Color.Red,
+                            System.Drawing.Color.Red,
                             hero.Name.Substring(0, 3));
                     }
                 }
