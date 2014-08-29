@@ -31,7 +31,7 @@ namespace QuickSmite
         public Smite()
         {
             var spells = ObjectManager.Player.SummonerSpellbook.Spells;
-            foreach (var spell in spells.Where(spell => spell.Name == SummonerName))
+            foreach (var spell in spells.Where(spell => spell.Name.ToLower() == SummonerName.ToLower()))
             {
                 Available = true;
                 Slot = spell.Slot;
